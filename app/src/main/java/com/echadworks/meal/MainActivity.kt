@@ -68,38 +68,9 @@ class MainActivity : AppCompatActivity() {
             ) {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
                 planList = response.body()!!
-                Log.d(TAG, "planList: " + planList)
-                val plan = planList.filter {
-                    it.day == todayDate
-                }
-                todayPlan = plan[0]
-                Log.d(TAG, "todayPlan: " + plan)
-
-                val planBook = bible.filter {
-                    it.abbrev == todayPlan.book
-                }
-
-                val todayBook = planBook[0]
-
-                Log.d(TAG, todayBook.name)
-
-                var todayVerse: List<String> = listOf()
-
-                if (todayPlan.fChap == todayPlan.lChap) {
-                    val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-                     todayVerse = todayChapter.subList(todayPlan.fVer!!-1, todayPlan.lVer!!)
-                } else {
-                    val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-                    val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
-                    val todayVerse1 = firstChapter.subList(todayPlan.fVer!!-1, firstChapter.size)
-                    val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
-
-                    todayVerse = todayVerse1 + todayVerse2
-                }
-
-                val planData = PlanData(todayBook.name, todayVerse)
-                Log.d(TAG, String.format("%s %s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString()))
-                Log.d(TAG, planData.toString())
+               runBlocking {
+                   planData()
+               }
             }
 
             override fun onFailure(
@@ -109,5 +80,40 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, t.message.toString())
             }
         })
+    }
+
+   suspend fun planData() {
+        Log.d(TAG, "planList: " + planList)
+        val plan = planList.filter {
+            it.day == todayDate
+        }
+        todayPlan = plan[0]
+        Log.d(TAG, "todayPlan: " + plan)
+
+        val planBook = bible.filter {
+            it.abbrev == todayPlan.book
+        }
+
+        val todayBook = planBook[0]
+
+        Log.d(TAG, todayBook.name)
+
+        var todayVerse: List<String> = listOf()
+
+        if (todayPlan.fChap == todayPlan.lChap) {
+            val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
+            todayVerse = todayChapter.subList(todayPlan.fVer!!-1, todayPlan.lVer!!)
+        } else {
+            val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
+            val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
+            val todayVerse1 = firstChapter.subList(todayPlan.fVer!!-1, firstChapter.size)
+            val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
+
+            todayVerse = todayVerse1 + todayVerse2
+        }
+
+        val planData = PlanData(todayBook.name, todayVerse)
+        Log.d(TAG, String.format("%s %s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString()))
+        Log.d(TAG, planData.toString())
     }
 }
