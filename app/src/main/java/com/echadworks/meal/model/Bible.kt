@@ -1,8 +1,8 @@
 package com.echadworks.meal.model
 import com.google.gson.annotations.SerializedName
 
-class Bible : ArrayList<Bible.BibleItem>(){
-    data class BibleItem(
+class Bible : ArrayList<Bible.Book>(){
+    data class Book(
         @SerializedName("abbrev")
         val abbrev: String,
         @SerializedName("chapters")

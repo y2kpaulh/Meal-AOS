@@ -4,8 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.echadworks.meal.model.Bible
-import com.echadworks.meal.model.Plan
-import com.echadworks.meal.model.Utils
+import com.echadworks.meal.network.Plan
+import com.echadworks.meal.utils.Utils
 import com.echadworks.meal.network.ApiProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 import retrofit2.Call
 import retrofit2.Response
 
@@ -30,21 +29,16 @@ class MainActivity : AppCompatActivity() {
                 getMealPlan()
             }
         }
-
     }
 
     private fun configBible() {
         val utils = Utils()
-
-        val jsonString = utils.getAssetJsonData(applicationContext, "NKRV")
-
-        val gson = Gson()
+        val bibleJsonString = utils.getAssetJsonData(applicationContext, "NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
-        val bible: Bible = gson.fromJson(jsonString, bibleType)
+        val bible: Bible = Gson().fromJson(bibleJsonString, bibleType)
+        val book: Bible.Book = bible.get(0)
 
-        val item: Bible.BibleItem = bible.get(0)
-
-        Log.i("MainActivity", item.chapters[0][0])
+        Log.i(TAG, book.chapters[0][1])
     }
 
     suspend fun getMealPlan() {

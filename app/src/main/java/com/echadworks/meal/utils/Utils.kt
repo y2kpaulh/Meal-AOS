@@ -1,7 +1,6 @@
-package com.echadworks.meal.model
+package com.echadworks.meal.utils
 
 import android.content.Context
-import android.util.Log
 import java.io.IOException
 
 public class Utils {

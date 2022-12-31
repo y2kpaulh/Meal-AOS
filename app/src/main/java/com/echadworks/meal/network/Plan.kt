@@ -1,4 +1,4 @@
-package com.echadworks.meal.model
+package com.echadworks.meal.network
 
 import com.google.gson.annotations.SerializedName
 
