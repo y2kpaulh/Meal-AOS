@@ -10,6 +10,11 @@ class Globals {
     companion object{
         val APP_SERVER_URL : String = "https://mealplan-y2kpaulh.koyeb.app"
 
+        val requiredPermissions = arrayOf(
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE
+        )
+
         fun todayString(): String {
             val current = LocalDateTime.now()
             val formatter = DateTimeFormatter.ISO_DATE

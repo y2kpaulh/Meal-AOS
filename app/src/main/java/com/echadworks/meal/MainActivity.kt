@@ -2,6 +2,7 @@ package com.echadworks.meal
 
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.echadworks.meal.model.Bible
 import com.echadworks.meal.model.PlanData
@@ -24,21 +25,27 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
+
     lateinit var planList: List<Plan>
     lateinit var bible: Bible
     lateinit var todayPlan: Plan
     lateinit var planData: PlanData
-
     val todayDate = Globals.todayString()
+
+    val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions.containsValue(false)) {
+            requestPermissions()
+        }
+    }
+    private fun requestPermissions() {
+        permissionLauncher.launch(Globals.requiredPermissions)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.i(TAG, Globals.todayString())
         configBible()
-
-        planList = listOf()
 
         GlobalScope.launch(Dispatchers.IO) {
             runBlocking {
@@ -47,17 +54,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        requestPermissions()
+    }
+
     private fun configBible() {
         val utils = Utils()
         val bibleJsonString = utils.getAssetJsonData(applicationContext, "NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
         bible = Gson().fromJson(bibleJsonString, bibleType)
         val book: Bible.Book = bible.get(0)
-
+        
+        planList = listOf()
         todayPlan = Plan()
         planData = PlanData()
-
-        Log.i(TAG, book.chapters[0][1])
     }
 
     suspend fun getMealPlan() {
