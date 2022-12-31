@@ -18,10 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
@@ -80,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
                 planList = response.body()!!
                runBlocking {
-                   planData()
+                   getPlanData()
                }
             }
 
@@ -93,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-   suspend fun planData() {
+   suspend fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
         val plan = planList.filter {
             it.day == todayDate
