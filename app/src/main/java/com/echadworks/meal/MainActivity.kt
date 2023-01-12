@@ -2,9 +2,14 @@ package com.echadworks.meal
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.echadworks.meal.databinding.ActivityMainBinding
 import com.echadworks.meal.model.Bible
 import com.echadworks.meal.model.PlanData
@@ -50,10 +55,20 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.configBible()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            runBlocking {
-               viewModel.getMealPlan()
-            }
+        viewModel.todayVerse.observe(this, Observer{
+            Log.d(TAG, ">>>>>>>>>>>")
+            Log.d(TAG, it.toString())
+            (binding.recyclerView.adapter as MealPlanAdapter).setData(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
+
+        })
+
+
+        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.adapter = MealPlanAdapter(emptyList())
+
+
+        runBlocking {
+            viewModel.getMealPlan()
         }
     }
 

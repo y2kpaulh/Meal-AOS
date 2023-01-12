@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.echadworks.meal.model.Bible
 import com.echadworks.meal.model.PlanData
 import com.echadworks.meal.network.ApiProvider
@@ -33,7 +32,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     lateinit var todayPlan: Plan
     lateinit var planData: PlanData
     val todayDate = Globals.todayString()
-
+    private var todayVerseList = MutableLiveData<List<String>>()
+    val todayVerse: LiveData<List<String>>
+             get() = todayVerseList
     private val _currentValue = MutableLiveData<Int>()
 
     // 변경되지 않는 데이터를 가져올 때 이름을 _언더스코어 없이 설정
@@ -105,21 +106,23 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         Log.d(TAG, todayBook.name)
 
-        var todayVerse: List<String> = listOf()
+        var verseList: List<String> = listOf()
 
         if (todayPlan.fChap == todayPlan.lChap) {
             val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            todayVerse = todayChapter.subList(todayPlan.fVer!!-1, todayPlan.lVer!!)
+            verseList = todayChapter.subList(todayPlan.fVer!!-1, todayPlan.lVer!!)
         } else {
             val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
             val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
             val todayVerse1 = firstChapter.subList(todayPlan.fVer!!-1, firstChapter.size)
             val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
 
-            todayVerse = todayVerse1 + todayVerse2
+            verseList = todayVerse1 + todayVerse2
         }
 
-        val planData = PlanData(todayBook.name, todayVerse)
+        todayVerseList.value = verseList
+
+        val planData = PlanData(todayBook.name, verseList)
         Log.d(TAG, String.format("%s %s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString()))
         Log.d(TAG, planData.toString())
     }
