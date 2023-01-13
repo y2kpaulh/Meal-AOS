@@ -4,8 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.echadworks.meal.databinding.MealPlanItemBinding
+import com.echadworks.meal.model.Verse
 
-class MealPlanAdapter(private var dataSet: List<String>): RecyclerView.Adapter<MealPlanAdapter.ViewHolder>() {
+class MealPlanAdapter(private var dataSet: ArrayList<Verse>): RecyclerView.Adapter<MealPlanAdapter.ViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -15,8 +16,9 @@ class MealPlanAdapter(private var dataSet: List<String>): RecyclerView.Adapter<M
     }
 
     class ViewHolder(private val binding: MealPlanItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: String) {
-            binding.verseText.text = data
+        fun bind(data: Verse) {
+            binding.verseNum.text = data.number.toString()
+            binding.verseText.text = data.text
         }
     }
     override fun onBindViewHolder(holder: MealPlanAdapter.ViewHolder, position: Int) {
@@ -27,7 +29,7 @@ class MealPlanAdapter(private var dataSet: List<String>): RecyclerView.Adapter<M
         return dataSet.size
     }
 
-    fun setData(newData: List<String>) {
+    fun setData(newData: ArrayList<Verse>) {
         dataSet = newData
         notifyDataSetChanged()
     }

@@ -3,11 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardElevation="10dp"
-    app:cardCornerRadius="2dp"
-    app:cardPreventCornerOverlap="false"
-    >
+    android:background="@color/design_default_color_background"
+    xmlns:app="http://schemas.android.com/apk/res-auto"  >
+<!--    app:cardElevation="10dp"-->
+<!--    app:cardCornerRadius="2dp"-->
+<!--    app:cardPreventCornerOverlap="false"-->
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,8 +27,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/verseNum"
-                android:text="11"
-                android:textColor="#000"
                 android:textSize="12sp"
                 android:paddingRight="10dp"
                 />
@@ -36,9 +35,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/verseText"
-                android:text="The Title of a BlogThe Title of a BlogThe Title of a BlogThe Title of a BlogThe Title of a BlogThe Title of a Blog"
-                android:textColor="@color/white"
                 android:textSize="12sp"
+                android:fontFamily="@font/nanummyeongjo"
                 />
 
         </LinearLayout>

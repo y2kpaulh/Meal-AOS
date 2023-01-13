@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.echadworks.meal.model.Bible
 import com.echadworks.meal.model.PlanData
+import com.echadworks.meal.model.Verse
 import com.echadworks.meal.network.ApiProvider
 import com.echadworks.meal.network.Plan
 import com.echadworks.meal.utils.Globals
@@ -30,12 +31,17 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     lateinit var planList: List<Plan>
     lateinit var bible: Bible
     lateinit var todayPlan: Plan
+    lateinit var todayBook: Bible.Book
     lateinit var planData: PlanData
     val todayDate = Globals.todayString()
-    private var todayVerseList = MutableLiveData<List<String>>()
-    val todayVerse: LiveData<List<String>>
+    var todayDescription = MutableLiveData<String>()
+
+    private var todayVerseList = MutableLiveData<ArrayList<Verse>>()
+    val todayVerse: LiveData<ArrayList<Verse>>
              get() = todayVerseList
     private val _currentValue = MutableLiveData<Int>()
+
+    lateinit var dataSource: ArrayList<Verse>
 
     // 변경되지 않는 데이터를 가져올 때 이름을 _언더스코어 없이 설정
     // 공개적으로 가져오는 변수는 private 이 아닌 public으로 외부에서도 접근 가능하도록 설정
@@ -66,6 +72,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         planList = listOf()
         todayPlan = Plan()
         planData = PlanData()
+        dataSource = arrayListOf()
     }
 
     suspend fun getMealPlan() {
@@ -102,7 +109,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             it.abbrev == todayPlan.book
         }
 
-        val todayBook = planBook[0]
+        todayBook = planBook[0]
 
         Log.d(TAG, todayBook.name)
 
@@ -120,9 +127,31 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             verseList = todayVerse1 + todayVerse2
         }
 
-        todayVerseList.value = verseList
+        verseList.forEachIndexed { index, string ->
+            var verseNum: Int = 0
+
+            if (todayPlan.fChap == todayPlan.lChap) {
+                verseNum = index + todayPlan.fVer!!
+            } else {
+                 verseNum = index + todayPlan.fVer!!
+
+                 var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
+
+                if (verseNum > verseCount) {
+                    verseNum = verseNum - verseCount
+                }
+            }
+
+            var verse = Verse(verseNum,string)
+
+            dataSource.add(verse)
+        }
+
+        todayVerseList.value = dataSource
 
         val planData = PlanData(todayBook.name, verseList)
+
+        todayDescription.value = String.format("%s\n%s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString())
         Log.d(TAG, String.format("%s %s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString()))
         Log.d(TAG, planData.toString())
     }

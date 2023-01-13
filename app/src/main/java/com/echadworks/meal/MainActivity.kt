@@ -62,9 +62,12 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        viewModel.todayDescription.observe(this, Observer{
+            binding.tvInfo.text = it
+        })
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = MealPlanAdapter(emptyList())
+        binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
 
 
         runBlocking {

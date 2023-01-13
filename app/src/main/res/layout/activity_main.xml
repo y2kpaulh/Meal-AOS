@@ -23,13 +23,12 @@
         android:id="@+id/tvInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="18dp"
         android:layout_marginRight="40dp"
         android:paddingLeft="10dp"
         app:layout_constraintLeft_toRightOf="@id/tvTitle"
         app:layout_constraintTop_toTopOf="@id/tvTitle"
         android:fontFamily="@font/nanummyeongjo"
-        android:text="01/12,목요일\n요한복음 4:15-4:26"
         android:textSize="14dp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -44,7 +43,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        android:background="@color/design_default_color_background"/>
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
