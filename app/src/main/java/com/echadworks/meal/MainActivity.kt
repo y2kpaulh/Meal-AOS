@@ -53,6 +53,11 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
 
+//        binding.button.setOnClickListener {
+//            val bottomSheet = BottomSheetDialog(this)
+//            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+//        }
+
         runBlocking {
             viewModel.getMealPlan()
         }

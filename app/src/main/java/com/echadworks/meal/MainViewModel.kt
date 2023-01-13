@@ -128,7 +128,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         _todayVerse.value = dataSource
 
-        todayDescription.value = String.format("%s\n%s %s:%s - %s:%s",Globals.today(), planData.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString())
+        todayDescription.value = String.format("%s\n%s %s:%s-%s:%s",Globals.today(), todayBook.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString())
 
         val planData = PlanData(todayBook.name, verseList)
         Log.d(TAG, planData.toString())
