@@ -25,7 +25,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/verseNum"
-                android:textSize="16sp"
+                android:fontFamily="@font/nanumbarungothic"
+                android:textSize="14sp"
                 android:paddingRight="10dp"
                 />
 
