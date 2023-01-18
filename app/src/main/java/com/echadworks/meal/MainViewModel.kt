@@ -63,7 +63,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         val mealPlanStr = sharedPreferences.getString("mealPlan", "") ?: ""
 
-        if (mealPlanStr!= null) {
+        if (mealPlanStr.length > 0) {
             val resultData = gson.fromJson(mealPlanStr, kotlin.Array<com.echadworks.meal.network.Plan>::class.java).toList()
             return  resultData
         }
