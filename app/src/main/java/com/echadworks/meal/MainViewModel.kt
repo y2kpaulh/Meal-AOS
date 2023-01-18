@@ -185,20 +185,17 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
 
                 if (verseNum > verseCount) {
-                    verseNum = verseNum - verseCount
+                    verseNum -= verseCount
                 }
             }
 
-            var verse = Verse(verseNum, string)
-
-            dataSource.add(verse)
+            dataSource.add(Verse(verseNum, string))
         }
 
         _todayVerse.value = dataSource
 
         todayDescription.value = String.format(
             "%s %s:%s-%s:%s",
-
             todayBook.name,
             todayPlan.fChap.toString(),
             todayPlan.fVer.toString(),
