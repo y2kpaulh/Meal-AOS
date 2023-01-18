@@ -36,7 +36,7 @@
 
             android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
-            android:textSize="14sp"/>
+            android:textSize="16sp"/>
 
 <!--            <Button-->
 <!--                android:id="@+id/button"-->
@@ -52,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/nanummyeongjo"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginTop="-20dp"
         android:layout_marginBottom="10dp"

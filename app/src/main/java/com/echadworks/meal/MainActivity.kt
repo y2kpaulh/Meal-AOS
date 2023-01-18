@@ -41,6 +41,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.configBible()
 
+        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
+
         viewModel.todayVerse.observe(this, Observer{
             Log.d(TAG, ">>>>>>>>>>>")
             Log.d(TAG, it.toString())
@@ -51,21 +54,19 @@ class MainActivity : AppCompatActivity() {
             binding.tvInfo.text = it
         })
 
-        binding.tvDate.text = Globals.today()
-
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
-
 //        binding.button.setOnClickListener {
 //            val bottomSheet = BottomSheetDialog(this)
 //            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
 //        }
 
-        viewModel.getTodayPlan()
     }
 
     override fun onResume() {
         super.onResume()
         requestPermissions()
+
+        binding.tvDate.text = Globals.today()
+
+        viewModel.getTodayPlan()
     }
 }
