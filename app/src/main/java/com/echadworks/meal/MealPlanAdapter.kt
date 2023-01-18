@@ -1,5 +1,6 @@
 package com.echadworks.meal
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -23,6 +24,7 @@ class MealPlanAdapter(private var dataSet: ArrayList<Verse>): RecyclerView.Adapt
     }
     override fun onBindViewHolder(holder: MealPlanAdapter.ViewHolder, position: Int) {
         holder.bind(dataSet[position])
+        holder.itemView.setBackgroundColor(Color.TRANSPARENT)
     }
 
     override fun getItemCount(): Int {

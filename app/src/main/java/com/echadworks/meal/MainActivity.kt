@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
 import com.echadworks.meal.utils.Globals
+import com.echadworks.meal.utils.Utils
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
@@ -50,6 +51,8 @@ class MainActivity : AppCompatActivity() {
             binding.tvInfo.text = it
         })
 
+        binding.tvDate.text = Globals.today()
+
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
 
@@ -58,9 +61,7 @@ class MainActivity : AppCompatActivity() {
 //            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
 //        }
 
-        runBlocking {
-            viewModel.getMealPlan()
-        }
+        viewModel.getTodayPlan()
     }
 
     override fun onResume() {

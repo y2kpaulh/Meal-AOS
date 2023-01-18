@@ -1,6 +1,7 @@
 package com.echadworks.meal
 
 import android.app.Application
+import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -43,6 +44,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     lateinit var dataSource: ArrayList<Verse>
 
+    private val gson = com.google.gson.Gson()
+
     fun configBible() {
         val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
@@ -54,6 +57,48 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         dataSource = arrayListOf()
     }
 
+    fun readSavedMealPlan() : List<Plan>? {
+        // creating a new variable for gson.
+        val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
+
+        val mealPlanStr = sharedPreferences.getString("mealPlan", "") ?: ""
+
+        if (mealPlanStr!= null) {
+            val resultData = gson.fromJson(mealPlanStr, kotlin.Array<com.echadworks.meal.network.Plan>::class.java).toList()
+            return  resultData
+        }
+
+        return  null
+    }
+
+    fun getTodayPlan() {
+         val checkedPlan: Plan? = existTodayPlan()
+
+        if (checkedPlan != null) {
+            todayPlan = checkedPlan
+            Log.d(TAG, "exist todayPlan: " + todayPlan.toString())
+
+            updateTodayPlan()
+        } else {
+            runBlocking {
+                getMealPlan()
+            }
+        }
+    }
+
+    fun existTodayPlan() : Plan? {
+        val mealPlan = readSavedMealPlan() ?: listOf()
+
+        if (mealPlan.isNotEmpty()) {
+            val plan = mealPlan.find { plan: Plan ->
+                plan.day.equals(Globals.todayString())
+            }
+            return plan
+        }
+
+        return null
+    }
+
     suspend fun getMealPlan() {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
@@ -62,9 +107,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             ) {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
                 planList = response.body()!!
-                runBlocking {
-                    getPlanData()
-                }
+
+                saveMealPlan()
+
+                getPlanData()
             }
 
             override fun onFailure(
@@ -76,14 +122,41 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         })
     }
 
-    suspend fun getPlanData() {
+    private fun saveMealPlan() {
+        // method for saving the data in array list.
+        // creating a variable for storing data in
+        // shared preferences.
+        val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
+
+        // creating a variable for editor to
+        // store data in shared preferences.
+        val editor = sharedPreferences.edit()
+
+        // getting data from gson and storing it in a string.
+        val json: String = gson.toJson(planList)
+
+        // below line is to save data in shared
+        // prefs in the form of string.
+        editor.putString("mealPlan", json)
+
+        // below line is to apply changes
+        // and save data in shared prefs.
+        editor.apply()
+    }
+
+    private fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
+
         val plan = planList.filter {
             it.day == todayDate
         }
         todayPlan = plan[0]
-        Log.d(TAG, "todayPlan: " + plan)
+        Log.d(TAG, "downloaded todayPlan: " + plan)
 
+        updateTodayPlan()
+    }
+
+    private fun updateTodayPlan() {
         val planBook = bible.filter {
             it.abbrev == todayPlan.book
         }
@@ -96,11 +169,11 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (todayPlan.fChap == todayPlan.lChap) {
             val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            verseList = todayChapter.subList(todayPlan.fVer!!-1, todayPlan.lVer!!)
+            verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!)
         } else {
             val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
             val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
-            val todayVerse1 = firstChapter.subList(todayPlan.fVer!!-1, firstChapter.size)
+            val todayVerse1 = firstChapter.subList(todayPlan.fVer!! - 1, firstChapter.size)
             val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
 
             verseList = todayVerse1 + todayVerse2
@@ -112,23 +185,31 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             if (todayPlan.fChap == todayPlan.lChap) {
                 verseNum = index + todayPlan.fVer!!
             } else {
-                 verseNum = index + todayPlan.fVer!!
+                verseNum = index + todayPlan.fVer!!
 
-                 var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
+                var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
 
                 if (verseNum > verseCount) {
                     verseNum = verseNum - verseCount
                 }
             }
 
-            var verse = Verse(verseNum,string)
+            var verse = Verse(verseNum, string)
 
             dataSource.add(verse)
         }
 
         _todayVerse.value = dataSource
 
-        todayDescription.value = String.format("%s\n%s %s:%s-%s:%s",Globals.today(), todayBook.name, todayPlan.fChap.toString(), todayPlan.fVer.toString(), todayPlan.lChap.toString(), todayPlan.lVer.toString())
+        todayDescription.value = String.format(
+            "%s %s:%s-%s:%s",
+
+            todayBook.name,
+            todayPlan.fChap.toString(),
+            todayPlan.fVer.toString(),
+            todayPlan.lChap.toString(),
+            todayPlan.lVer.toString()
+        )
 
         val planData = PlanData(todayBook.name, verseList)
         Log.d(TAG, planData.toString())
