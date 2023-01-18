@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_main_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Meal"
-        tools:targetApi="33">
+        tools:targetApi="32">
 
 <!--        <activity-->
 <!--            android:name=".SplashActivity"-->
