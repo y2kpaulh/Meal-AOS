@@ -19,10 +19,6 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
 
-enum class ActionType {
-    PLUS, MINUS
-}
-
 class MainViewModel(application: Application): AndroidViewModel(application) {
     companion object {
         const val TAG: String = "MainViewModel"
@@ -63,9 +59,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         val mealPlanStr = sharedPreferences.getString("mealPlan", "") ?: ""
 
-        if (mealPlanStr.length > 0) {
-            val resultData = gson.fromJson(mealPlanStr, kotlin.Array<com.echadworks.meal.network.Plan>::class.java).toList()
-            return  resultData
+        if (mealPlanStr.isNotEmpty()) {
+            return gson.fromJson(mealPlanStr, Array<Plan>::class.java).toList()
         }
 
         return  null
