@@ -174,6 +174,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             verseList = todayVerse1 + todayVerse2
         }
 
+        dataSource = arrayListOf()
+
         verseList.forEachIndexed { index, string ->
             var verseNum: Int = 0
 

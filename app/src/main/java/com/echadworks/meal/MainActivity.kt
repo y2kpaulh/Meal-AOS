@@ -65,8 +65,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         requestPermissions()
 
-        binding.tvDate.text = Globals.today()
-
-        viewModel.getTodayPlan()
+        if (!binding.tvDate.text.equals(Globals.today())) {
+            binding.tvDate.text = Globals.today()
+            viewModel.getTodayPlan()
+        }
     }
 }
