@@ -2,6 +2,7 @@ package com.echadworks.meal
 
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -70,4 +71,11 @@ class MainActivity : AppCompatActivity() {
             viewModel.getTodayPlan()
         }
     }
+}
+
+internal fun matchParent(): ViewGroup.LayoutParams {
+    return ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.MATCH_PARENT
+    )
 }

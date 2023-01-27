@@ -27,6 +27,7 @@
                 android:id="@+id/verseNum"
                 android:fontFamily="@font/nanumbarungothic"
                 android:textSize="14sp"
+                android:textColor="@color/gray"
                 android:paddingRight="10dp"
                 />
 
@@ -35,6 +36,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/verseText"
                 android:textSize="16sp"
+                android:textColor="@color/black"
                 android:fontFamily="@font/nanummyeongjo"
                 />
 
