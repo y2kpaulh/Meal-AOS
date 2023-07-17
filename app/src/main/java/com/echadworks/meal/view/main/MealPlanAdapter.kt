@@ -6,11 +6,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.echadworks.meal.databinding.PlanItemBinding
+import com.echadworks.meal.databinding.BibleWordItemBinding
 import com.echadworks.meal.model.Verse
 
 class MealPlanAdapter: ListAdapter<Verse, MealPlanAdapter.ViewHolder>(diffUtil) {
-    inner class ViewHolder(private val binding: PlanItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: BibleWordItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(data: Verse) {
             binding.verseNum.text = data.number.toString()
             binding.verseText.text = data.text
@@ -19,7 +19,7 @@ class MealPlanAdapter: ListAdapter<Verse, MealPlanAdapter.ViewHolder>(diffUtil) 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
-            PlanItemBinding.inflate(
+            BibleWordItemBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false

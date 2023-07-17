@@ -2,7 +2,6 @@ package com.echadworks.meal.view.main
 
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -10,14 +9,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
 import com.echadworks.meal.utils.Globals
-import com.echadworks.meal.view.list.BottomSheetDialog
+import com.echadworks.meal.view.list.ReadingPlanSheet
 import com.echadworks.meal.view.list.PlanAdapter
-import okhttp3.internal.toImmutableList
-import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
-    lateinit var bottomSheetDialog: BottomSheetDialog
+    private lateinit var readingPlanSheet: ReadingPlanSheet
     lateinit var planAdapter: PlanAdapter
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     lateinit var viewModel: MainViewModel
@@ -52,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, it.toString())
             (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
 
-            planAdapter.submitList(viewModel.planList.toMutableList())
+            readingPlanSheet.setPlanList(viewModel.planList)
         })
 
         viewModel.todayDescription.observe(this, Observer{
@@ -61,13 +58,14 @@ class MainActivity : AppCompatActivity() {
 
         planAdapter = PlanAdapter { plan, position ->
             Log.d(TAG,"plan: $plan, position: $position")
-            bottomSheetDialog.dismiss()
+            readingPlanSheet.dismiss()
         }
 
-        bottomSheetDialog = BottomSheetDialog(planAdapter)
+        readingPlanSheet = ReadingPlanSheet()
+        readingPlanSheet.setAdapter(planAdapter)
 
         binding.btnCalendar.setOnClickListener {
-            bottomSheetDialog.show(supportFragmentManager, "TAG")
+            readingPlanSheet.show(supportFragmentManager, "TAG")
         }
     }
 
@@ -80,11 +78,4 @@ class MainActivity : AppCompatActivity() {
             viewModel.getTodayPlan()
         }
     }
-}
-
-internal fun matchParent(): ViewGroup.LayoutParams {
-    return ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.MATCH_PARENT
-    )
 }

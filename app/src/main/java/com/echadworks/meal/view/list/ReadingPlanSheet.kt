@@ -1,6 +1,5 @@
 package com.echadworks.meal.view.list
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,8 +11,9 @@ import com.echadworks.meal.R
 import com.echadworks.meal.network.Plan
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class BottomSheetDialog(private val adapter: PlanAdapter) : BottomSheetDialogFragment()
+class ReadingPlanSheet: BottomSheetDialogFragment()
 {
+    private lateinit var adapter: PlanAdapter
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -21,7 +21,7 @@ class BottomSheetDialog(private val adapter: PlanAdapter) : BottomSheetDialogFra
     ): View?
     {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.bottom_sheet_layout, container, false)
+        return inflater.inflate(R.layout.reading_plan_sheet, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -32,5 +32,12 @@ class BottomSheetDialog(private val adapter: PlanAdapter) : BottomSheetDialogFra
             Toast.makeText(requireContext(), "Bottom Sheet 안의 버튼 클릭", Toast.LENGTH_SHORT).show()
             dismiss()
         }
+    }
+
+    fun setAdapter(planAdapter: PlanAdapter) {
+         adapter = planAdapter
+    }
+    fun setPlanList(list: List<Plan>) {
+        adapter.submitList(list)
     }
 }
