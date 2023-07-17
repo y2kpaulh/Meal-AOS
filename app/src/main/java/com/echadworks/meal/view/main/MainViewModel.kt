@@ -1,4 +1,4 @@
-package com.echadworks.meal
+package com.echadworks.meal.view.main
 
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
@@ -31,7 +31,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     lateinit var todayPlan: Plan
     lateinit var todayBook: Bible.Book
     lateinit var planData: PlanData
-    val todayDate = Globals.todayString()
+    var todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
 
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
@@ -85,6 +85,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
+            planList = mealPlan
             val plan = mealPlan.find { plan: Plan ->
                 plan.day.equals(Globals.todayString())
             }
@@ -102,7 +103,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             ) {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
                 planList = response.body()!!
-
                 saveMealPlan()
 
                 getPlanData()

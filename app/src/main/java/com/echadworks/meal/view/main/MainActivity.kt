@@ -1,4 +1,4 @@
-package com.echadworks.meal
+package com.echadworks.meal.view.main
 
 import android.os.Bundle
 import android.util.Log
@@ -10,14 +10,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
 import com.echadworks.meal.utils.Globals
-import com.echadworks.meal.utils.Utils
-import kotlinx.coroutines.runBlocking
+import com.echadworks.meal.view.list.BottomSheetDialog
+import com.echadworks.meal.view.list.PlanAdapter
+import okhttp3.internal.toImmutableList
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
-
+    lateinit var bottomSheetDialog: BottomSheetDialog
+    lateinit var planAdapter: PlanAdapter
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-
     lateinit var viewModel: MainViewModel
 
     val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -43,23 +45,30 @@ class MainActivity : AppCompatActivity() {
         viewModel.configBible()
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
+        binding.recyclerView.adapter = MealPlanAdapter()
 
         viewModel.todayVerse.observe(this, Observer{
             Log.d(TAG, ">>>>>>>>>>>")
             Log.d(TAG, it.toString())
-            (binding.recyclerView.adapter as MealPlanAdapter).setData(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
+            (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
+
+            planAdapter.submitList(viewModel.planList.toMutableList())
         })
 
         viewModel.todayDescription.observe(this, Observer{
             binding.tvInfo.text = it
         })
 
-//        binding.button.setOnClickListener {
-//            val bottomSheet = BottomSheetDialog(this)
-//            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
-//        }
+        planAdapter = PlanAdapter { plan, position ->
+            Log.d(TAG,"plan: $plan, position: $position")
+            bottomSheetDialog.dismiss()
+        }
 
+        bottomSheetDialog = BottomSheetDialog(planAdapter)
+
+        binding.btnCalendar.setOnClickListener {
+            bottomSheetDialog.show(supportFragmentManager, "TAG")
+        }
     }
 
     override fun onResume() {
