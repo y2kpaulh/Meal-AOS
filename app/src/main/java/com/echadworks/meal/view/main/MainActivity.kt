@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
 import com.echadworks.meal.utils.Globals
-import com.echadworks.meal.view.list.ReadingPlanSheet
 import com.echadworks.meal.view.list.PlanAdapter
+import com.echadworks.meal.view.list.ReadingPlanSheet
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
@@ -44,12 +44,17 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter()
 
-        viewModel.todayVerse.observe(this, Observer{
+        viewModel.planList.observe(this, Observer {
+            readingPlanSheet.setPlanList(it)
+        })
+
+        viewModel.selectedDayVerse.observe(this, Observer{
             Log.d(TAG, ">>>>>>>>>>>")
             Log.d(TAG, it.toString())
-            (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
+            val selectedDay = viewModel.changeSelectedDate(viewModel.selectedDayPlan.day!!)
+            binding.tvDate.text = selectedDay
 
-            readingPlanSheet.setPlanList(viewModel.planList)
+            (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
         })
 
         viewModel.todayDescription.observe(this, Observer{
@@ -58,6 +63,10 @@ class MainActivity : AppCompatActivity() {
 
         planAdapter = PlanAdapter { plan, position ->
             Log.d(TAG,"plan: $plan, position: $position")
+            viewModel.selectedDayPlan = plan
+
+            viewModel.fetchReadingPlan()
+
             readingPlanSheet.dismiss()
         }
 
@@ -73,9 +82,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         requestPermissions()
 
-        if (!binding.tvDate.text.equals(Globals.today())) {
-            binding.tvDate.text = Globals.today()
-            viewModel.getTodayPlan()
-        }
+        viewModel.fetchReadingPlan()
     }
 }

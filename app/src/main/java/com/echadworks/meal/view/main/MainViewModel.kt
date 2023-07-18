@@ -18,6 +18,9 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
     companion object {
@@ -26,17 +29,25 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private val context = getApplication<Application>().applicationContext
 
-    lateinit var planList: List<Plan>
+    var planList = MutableLiveData<List<Plan>>()
     lateinit var bible: Bible
     lateinit var todayPlan: Plan
-    lateinit var todayBook: Bible.Book
+    lateinit var selectedDayPlan: Plan
+
     lateinit var planData: PlanData
     var todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
 
+    var selectedDay = MutableLiveData<String>()
+    var selectedDayDescription = MutableLiveData<String>()
+
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
     val todayVerse: LiveData<ArrayList<Verse>>
         get() = _todayVerse
+
+    private val _selectedDayVerse = MutableLiveData<ArrayList<Verse>>()
+    val selectedDayVerse: LiveData<ArrayList<Verse>>
+        get() = _selectedDayVerse
 
     lateinit var dataSource: ArrayList<Verse>
 
@@ -47,13 +58,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val bibleType = object : TypeToken<Bible>() {}.type
 
         bible = Gson().fromJson(bibleJsonString, bibleType)
-        planList = listOf()
         todayPlan = Plan()
+        selectedDayPlan = Plan()
         planData = PlanData()
         dataSource = arrayListOf()
     }
 
-    fun readSavedMealPlan() : List<Plan>? {
+    private fun readSavedMealPlan() : List<Plan>? {
         // creating a new variable for gson.
         val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
 
@@ -81,11 +92,25 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun existTodayPlan() : Plan? {
+    fun fetchReadingPlan() {
+        val date: String = if (selectedDayPlan.day != null) selectedDayPlan.day!! else Globals.todayString()
+        val resultPlan = existSelectedDayPlan(date)
+
+        if (resultPlan != null) {
+            selectedDayPlan = resultPlan
+            updateSelectedDayPlan(selectedDayPlan)
+        }else {
+            runBlocking {
+                getMealPlan()
+            }
+        }
+    }
+
+    private fun existTodayPlan() : Plan? {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
-            planList = mealPlan
+            planList.value = mealPlan
             val plan = mealPlan.find { plan: Plan ->
                 plan.day.equals(Globals.todayString())
             }
@@ -95,14 +120,28 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         return null
     }
 
-    suspend fun getMealPlan() {
+    private fun existSelectedDayPlan(selectedDay: String) : Plan? {
+        val mealPlan = readSavedMealPlan() ?: listOf()
+
+        if (mealPlan.isNotEmpty()) {
+            planList.value = mealPlan
+            val plan = mealPlan.find { plan: Plan ->
+                plan.day.equals(selectedDay)
+            }
+            return plan
+        }
+
+        return null
+    }
+
+    private suspend fun getMealPlan() {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
                 call: Call<List<Plan>>,
                 response: Response<List<Plan>>
             ) {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
-                planList = response.body()!!
+                planList.value = response.body()!!
                 saveMealPlan()
 
                 getPlanData()
@@ -142,13 +181,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
 
-        val plan = planList.filter {
-            it.day == todayDate
+        val plan = planList.value?.filter {
+            it.day == Globals.todayString()
         }
-        todayPlan = plan[0]
-        Log.d(TAG, "downloaded todayPlan: " + plan)
 
-        updateTodayPlan()
+        selectedDayPlan = plan?.get(0).let { it } ?: return
+
+        updateSelectedDayPlan(selectedDayPlan)
     }
 
     private fun updateTodayPlan() {
@@ -156,7 +195,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             it.abbrev == todayPlan.book
         }
 
-        todayBook = planBook[0]
+        val todayBook = planBook[0]
 
         Log.d(TAG, todayBook.name)
 
@@ -207,5 +246,77 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         val planData = PlanData(todayBook.name, verseList)
         Log.d(TAG, planData.toString())
+    }
+
+    private fun updateSelectedDayPlan(selectedPlan: Plan) {
+        val planBook = bible.filter {
+            it.abbrev == selectedPlan.book
+        }
+
+        val book = planBook[0]
+
+        val plan: Plan = selectedPlan.let { it }
+        val fChap: Int = plan.fChap?.let { it } ?: return
+        val fVer: Int = plan.fVer?.let { it } ?: return
+        val lChap: Int = plan.lChap?.let { it } ?: return
+        val lVer: Int = plan.lVer?.let { it } ?: return
+
+        var verseList: List<String> = if (fChap == lChap) {
+            val todayChapter = book.chapters[fChap - 1]
+            todayChapter.subList(fVer - 1, lVer)
+        } else {
+            val firstChapter = book.chapters[fChap - 1]
+            val lastChapter = book.chapters[lChap - 1]
+            val todayVerse1 = firstChapter.subList(fVer - 1, firstChapter.size)
+            val todayVerse2 = lastChapter.subList(0, lVer)
+
+            todayVerse1 + todayVerse2
+        }
+
+        dataSource = arrayListOf()
+
+        verseList.forEachIndexed { index, string ->
+            var verseNum: Int
+
+            if (fChap == lChap) {
+                verseNum = index + fVer
+            } else {
+                verseNum = index + fVer
+
+                var verseCount = book.chapters[fChap - 1].size
+
+                if (verseNum > verseCount) {
+                    verseNum -= verseCount
+                }
+            }
+
+            dataSource.add(Verse(verseNum, string))
+        }
+
+        _selectedDayVerse.value = dataSource
+
+        selectedDayDescription.value = String.format(
+            "%s %s:%s-%s:%s",
+            book.name,
+            fChap.toString(),
+            fVer.toString(),
+            lChap.toString(),
+            lVer.toString()
+        )
+
+        val planData = PlanData(book.name, verseList)
+        Log.d(TAG, planData.toString())
+    }
+
+    fun changeSelectedDate(day: String): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd")
+        val date = formatter.parse(day)
+
+        // 날짜, 시간을 가져오고 싶은 형태 선언
+        val t_dateFormat = SimpleDateFormat("MM/dd, E요일", Locale("ko", "KR"))
+        // 현재 시간을 dateFormat 에 선언한 형태의 String 으로 변환
+        val str_date = t_dateFormat.format(date)
+
+        return str_date
     }
 }
