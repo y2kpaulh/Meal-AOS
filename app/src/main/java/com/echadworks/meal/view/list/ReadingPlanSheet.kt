@@ -21,6 +21,12 @@ class ReadingPlanSheet: BottomSheetDialogFragment()
     ): View?
     {
         binding = ReadingPlanSheetBinding.inflate(inflater, container, false)
+
+        arguments?.let{ it.getInt("scroll_position").let { position ->
+                binding.recyclerView.layoutManager?.scrollToPosition(position)
+            }
+        }
+
         return binding.root
     }
 

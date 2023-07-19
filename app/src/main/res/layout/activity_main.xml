@@ -47,9 +47,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/nanumbarungothic"
-                    android:textColor="@color/black"
+                    android:textColor="@color/gray_middle"
                     android:layout_marginLeft="4dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="14dp"
+                    app:layout_constraintBottom_toBottomOf = "@+id/tvTitle"
                     android:textSize="16sp"/>
                 <ImageButton
                     android:id="@+id/btn_calendar"
@@ -57,8 +58,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/calendar_month"
                     android:background="@color/white"
-                    android:layout_marginTop="4dp"
-
+                    android:layout_marginTop="10dp"
                     android:layout_marginLeft="10dp"
                     app:layout_constraintBottom_toBottomOf="@+id/tvDate"
                     app:layout_constraintLeft_toRightOf="@+id/tvDate"
@@ -80,8 +80,8 @@
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginTop="-20dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="-10dp"
+                android:layout_marginBottom="4dp"
                 app:layout_constraintTop_toBottomOf ="@id/titleLayout"/>
 
             <View

@@ -2,7 +2,9 @@ package com.echadworks.meal.view.main
 
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,7 +21,8 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
@@ -31,11 +34,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     var planList = MutableLiveData<List<Plan>>()
     lateinit var bible: Bible
-    lateinit var todayPlan: Plan
     lateinit var selectedDayPlan: Plan
 
     lateinit var planData: PlanData
-    var todayDescription = MutableLiveData<String>()
 
     var selectedDayDescription = MutableLiveData<String>()
 
@@ -52,7 +53,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val bibleType = object : TypeToken<Bible>() {}.type
 
         bible = Gson().fromJson(bibleJsonString, bibleType)
-        todayPlan = Plan()
         selectedDayPlan = Plan()
         planData = PlanData()
         dataSource = arrayListOf()
@@ -227,6 +227,18 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         val planData = PlanData(book.name, verseList)
         Log.d(TAG, planData.toString())
+    }
+
+    fun getTodayIndex(): Int {
+        val index = planList.value?.withIndex().let {
+            it?.let { plan ->
+                plan.first { data -> Globals.todayString() == data.value.day}.let {
+                    index -> index
+                }.index
+            }
+        } ?: 0
+
+        return index
     }
 
     fun changeSelectedDate(day: String): String {

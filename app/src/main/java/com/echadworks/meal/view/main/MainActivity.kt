@@ -44,10 +44,6 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter()
 
-        viewModel.planList.observe(this, Observer {
-            readingPlanSheet.setPlanList(it)
-        })
-
         viewModel.selectedDayVerse.observe(this, Observer{
             Log.d(TAG, ">>>>>>>>>>>")
             Log.d(TAG, it.toString())
@@ -57,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
         })
 
-        viewModel.todayDescription.observe(this, Observer{
+        viewModel.selectedDayDescription.observe(this, Observer{
             binding.tvInfo.text = it
         })
 
@@ -70,11 +66,17 @@ class MainActivity : AppCompatActivity() {
             readingPlanSheet.dismiss()
         }
 
-        readingPlanSheet = ReadingPlanSheet()
-        readingPlanSheet.setAdapter(planAdapter)
-
         binding.btnCalendar.setOnClickListener {
-            readingPlanSheet.show(supportFragmentManager, "TAG")
+            viewModel.planList.value?.let { planList ->
+                readingPlanSheet = ReadingPlanSheet()
+
+                val bundle = Bundle()
+                bundle.putInt("scroll_position", viewModel.getTodayIndex())
+                readingPlanSheet.arguments = bundle
+                readingPlanSheet.setAdapter(planAdapter)
+                readingPlanSheet.setPlanList(planList)
+                readingPlanSheet.show(supportFragmentManager, "TAG")
+            }
         }
     }
 
