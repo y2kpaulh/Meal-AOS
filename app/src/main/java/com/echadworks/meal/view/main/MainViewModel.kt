@@ -35,15 +35,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     lateinit var selectedDayPlan: Plan
 
     lateinit var planData: PlanData
-    var todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
 
-    var selectedDay = MutableLiveData<String>()
     var selectedDayDescription = MutableLiveData<String>()
-
-    private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
-    val todayVerse: LiveData<ArrayList<Verse>>
-        get() = _todayVerse
 
     private val _selectedDayVerse = MutableLiveData<ArrayList<Verse>>()
     val selectedDayVerse: LiveData<ArrayList<Verse>>
@@ -75,21 +69,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
 
         return  null
-    }
-
-    fun getTodayPlan() {
-         val checkedPlan: Plan? = existTodayPlan()
-
-        if (checkedPlan != null) {
-            todayPlan = checkedPlan
-            Log.d(TAG, "exist todayPlan: " + todayPlan.toString())
-
-            updateTodayPlan()
-        } else {
-            runBlocking {
-                getMealPlan()
-            }
-        }
     }
 
     fun fetchReadingPlan() {
@@ -188,64 +167,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         selectedDayPlan = plan?.get(0).let { it } ?: return
 
         updateSelectedDayPlan(selectedDayPlan)
-    }
-
-    private fun updateTodayPlan() {
-        val planBook = bible.filter {
-            it.abbrev == todayPlan.book
-        }
-
-        val todayBook = planBook[0]
-
-        Log.d(TAG, todayBook.name)
-
-        var verseList: List<String> = listOf()
-
-        if (todayPlan.fChap == todayPlan.lChap) {
-            val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!)
-        } else {
-            val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
-            val todayVerse1 = firstChapter.subList(todayPlan.fVer!! - 1, firstChapter.size)
-            val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
-
-            verseList = todayVerse1 + todayVerse2
-        }
-
-        dataSource = arrayListOf()
-
-        verseList.forEachIndexed { index, string ->
-            var verseNum: Int = 0
-
-            if (todayPlan.fChap == todayPlan.lChap) {
-                verseNum = index + todayPlan.fVer!!
-            } else {
-                verseNum = index + todayPlan.fVer!!
-
-                var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
-
-                if (verseNum > verseCount) {
-                    verseNum -= verseCount
-                }
-            }
-
-            dataSource.add(Verse(verseNum, string))
-        }
-
-        _todayVerse.value = dataSource
-
-        todayDescription.value = String.format(
-            "%s %s:%s-%s:%s",
-            todayBook.name,
-            todayPlan.fChap.toString(),
-            todayPlan.fVer.toString(),
-            todayPlan.lChap.toString(),
-            todayPlan.lVer.toString()
-        )
-
-        val planData = PlanData(todayBook.name, verseList)
-        Log.d(TAG, planData.toString())
     }
 
     private fun updateSelectedDayPlan(selectedPlan: Plan) {
