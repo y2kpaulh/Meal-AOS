@@ -2,6 +2,7 @@ package com.echadworks.meal.view.main
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -14,8 +15,6 @@ import com.echadworks.meal.view.list.ReadingPlanSheet
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
-    private lateinit var readingPlanSheet: ReadingPlanSheet
-    lateinit var planAdapter: PlanAdapter
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     lateinit var viewModel: MainViewModel
 
@@ -47,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.selectedDayVerse.observe(this, Observer{
             Log.d(TAG, ">>>>>>>>>>>")
             Log.d(TAG, it.toString())
-            val selectedDay = viewModel.changeSelectedDate(viewModel.selectedDayPlan.day!!)
+            val selectedDay = Globals.changeSelectedDate(viewModel.selectedDayPlan.day!!)
             binding.tvDate.text = selectedDay
 
             (binding.recyclerView.adapter as MealPlanAdapter).submitList(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
@@ -57,26 +56,17 @@ class MainActivity : AppCompatActivity() {
             binding.tvInfo.text = it
         })
 
-        planAdapter = PlanAdapter { plan, position ->
-            Log.d(TAG,"plan: $plan, position: $position")
-            viewModel.selectedDayPlan = plan
-
-            viewModel.fetchReadingPlan()
-
-            readingPlanSheet.dismiss()
-        }
-
         binding.btnCalendar.setOnClickListener {
-            viewModel.planList.value?.let { planList ->
-                readingPlanSheet = ReadingPlanSheet()
+            val selectedIndex = viewModel.getTodayIndex()
+            val dataList = viewModel.planList
 
-                val bundle = Bundle()
-                bundle.putInt("scroll_position", viewModel.getTodayIndex())
-                readingPlanSheet.arguments = bundle
-                readingPlanSheet.setAdapter(planAdapter)
-                readingPlanSheet.setPlanList(planList)
-                readingPlanSheet.show(supportFragmentManager, "TAG")
+            val bottomSheet = ReadingPlanSheet.newInstance(selectedIndex, dataList)
+            bottomSheet.onItemSelectedListener = { index ->
+                viewModel.selectedDayPlan = viewModel.planList[index]
+                viewModel.fetchReadingPlan()
+                bottomSheet.dismiss()
             }
+            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
         }
     }
 

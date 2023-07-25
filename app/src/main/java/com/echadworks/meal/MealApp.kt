@@ -11,11 +11,9 @@ class MealApp : Application() {
         lateinit var prefs: PreferenceUtil
     }
 
-    private val context: Context? = null
-
     override fun onCreate() {
         prefs = PreferenceUtil(applicationContext)
-        MealApp.context = getApplicationContext()
+        context = applicationContext
 
         super.onCreate()
 

@@ -1,18 +1,56 @@
 package com.echadworks.meal.view.list
 
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import com.echadworks.meal.R
 import com.echadworks.meal.databinding.ReadingPlanSheetBinding
 import com.echadworks.meal.network.Plan
+import com.echadworks.meal.view.main.MainViewModel.Companion.TAG
+import com.echadworks.meal.view.main.MealPlanAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class ReadingPlanSheet: BottomSheetDialogFragment()
 {
     private lateinit var binding: ReadingPlanSheetBinding
-    private lateinit var adapter: PlanAdapter
+
+    private var scrollToIndex: Int = 0
+    private lateinit var dataList: List<Plan>
+
+    var onItemSelectedListener: ((Int) -> Unit)? = null
+    companion object {
+        private const val ARG_DATA_LIST = "dataList"
+        private const val ARG_SELECTED_INDEX = "selectedIndex"
+
+        fun newInstance(selectedIndex: Int, dataList: List<Plan>): ReadingPlanSheet {
+            return ReadingPlanSheet().apply {
+                arguments = Bundle().apply {
+                    putParcelableArrayList(ARG_DATA_LIST, ArrayList(dataList))
+                    putInt(ARG_SELECTED_INDEX, selectedIndex)
+                }
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.CustomBottomSheetDialogTheme)
+
+        arguments?.let {
+            scrollToIndex = it.getInt(ARG_SELECTED_INDEX)
+
+            dataList = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                it.getParcelable(ARG_DATA_LIST, ArrayList<Plan>()::class.java) ?: emptyList()
+            } else {
+                it.getParcelableArrayList<Plan>(ARG_DATA_LIST) ?: emptyList()
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -22,11 +60,6 @@ class ReadingPlanSheet: BottomSheetDialogFragment()
     {
         binding = ReadingPlanSheetBinding.inflate(inflater, container, false)
 
-        arguments?.let{ it.getInt("scroll_position").let { position ->
-                binding.recyclerView.layoutManager?.scrollToPosition(position)
-            }
-        }
-
         return binding.root
     }
 
@@ -34,20 +67,16 @@ class ReadingPlanSheet: BottomSheetDialogFragment()
         super.onViewCreated(view, savedInstanceState)
 
         binding.apply {
+
+            val adapter = PlanAdapter { position ->
+                onItemSelectedListener?.invoke(position)
+            }
+
+            adapter.submitList(dataList)
             recyclerView.adapter = adapter
 
-            buttonBottomSheet.setOnClickListener {
-                Toast.makeText(requireContext(), "Bottom Sheet 안의 버튼 클릭", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
+            recyclerView.scrollToPosition(scrollToIndex)
+
         }
-    }
-
-    fun setAdapter(planAdapter: PlanAdapter) {
-        adapter = planAdapter
-    }
-
-    fun setPlanList(list: List<Plan>) {
-        adapter.submitList(list)
     }
 }

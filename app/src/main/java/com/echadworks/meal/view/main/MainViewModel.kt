@@ -32,10 +32,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private val context = getApplication<Application>().applicationContext
 
-    var planList = MutableLiveData<List<Plan>>()
-    lateinit var bible: Bible
+    var planList : List<Plan> = arrayListOf()
     lateinit var selectedDayPlan: Plan
-
     lateinit var planData: PlanData
 
     var selectedDayDescription = MutableLiveData<String>()
@@ -49,10 +47,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private val gson = com.google.gson.Gson()
 
     fun configBible() {
-        val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
-        val bibleType = object : TypeToken<Bible>() {}.type
-
-        bible = Gson().fromJson(bibleJsonString, bibleType)
         selectedDayPlan = Plan()
         planData = PlanData()
         dataSource = arrayListOf()
@@ -89,7 +83,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
-            planList.value = mealPlan
+            planList = mealPlan
             val plan = mealPlan.find { plan: Plan ->
                 plan.day.equals(Globals.todayString())
             }
@@ -103,7 +97,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
-            planList.value = mealPlan
+            planList = mealPlan
             val plan = mealPlan.find { plan: Plan ->
                 plan.day.equals(selectedDay)
             }
@@ -120,7 +114,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 response: Response<List<Plan>>
             ) {
                 Log.d(TAG, "success!!\n" + response.body()!!.toString())
-                planList.value = response.body()!!
+                planList = response.body()!!
                 saveMealPlan()
 
                 getPlanData()
@@ -160,7 +154,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
 
-        val plan = planList.value?.filter {
+        val plan = planList.filter {
             it.day == Globals.todayString()
         }
 
@@ -170,12 +164,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun updateSelectedDayPlan(selectedPlan: Plan) {
-        val planBook = bible.filter {
-            it.abbrev == selectedPlan.book
-        }
-
-        val book = planBook[0]
-
+        val book = selectedPlan.book?.let { Globals.getBook(it) } ?: return
         val plan: Plan = selectedPlan.let { it }
         val fChap: Int = plan.fChap?.let { it } ?: return
         val fVer: Int = plan.fVer?.let { it } ?: return
@@ -230,26 +219,20 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     fun getTodayIndex(): Int {
-        val index = planList.value?.withIndex().let {
-            it?.let { plan ->
-                plan.first { data -> Globals.todayString() == data.value.day}.let {
-                    index -> index
-                }.index
-            }
-        } ?: 0
+        var result: Int = 0
 
-        return index
+        if (planList.size > 0) {
+            result = planList.withIndex().let {
+                it?.let { plan ->
+                    plan.first { data -> Globals.todayString() == data.value.day}.let {
+                            index -> index
+                    }.index ?: 0
+                }
+            } ?: 0
+        }
+
+        return result
     }
 
-    fun changeSelectedDate(day: String): String {
-        val formatter = SimpleDateFormat("yyyy-MM-dd")
-        val date = formatter.parse(day)
 
-        // 날짜, 시간을 가져오고 싶은 형태 선언
-        val t_dateFormat = SimpleDateFormat("MM/dd, E요일", Locale("ko", "KR"))
-        // 현재 시간을 dateFormat 에 선언한 형태의 String 으로 변환
-        val str_date = t_dateFormat.format(date)
-
-        return str_date
-    }
 }

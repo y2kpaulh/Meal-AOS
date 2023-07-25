@@ -1,6 +1,5 @@
 package com.echadworks.meal.view.list
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -8,18 +7,31 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.echadworks.meal.databinding.ReadingPlanItemBinding
 import com.echadworks.meal.network.Plan
+import com.echadworks.meal.utils.Globals
 
-class PlanAdapter(private val onItemClick: (Plan, Int) -> Unit): ListAdapter<Plan, PlanAdapter.ViewHolder>(diffUtil) {
-    inner class ViewHolder(private val binding: ReadingPlanItemBinding, onItemClicked: (Int) -> Unit) : RecyclerView.ViewHolder(binding.root) {
-        init {
-            itemView.setOnClickListener {
-                // this will be called only once.
-                onItemClicked(bindingAdapterPosition)
-            }
-        }
+class PlanAdapter(private val onItemClicked: (Int) -> Unit): ListAdapter<Plan, PlanAdapter.ViewHolder>(diffUtil) {
+    inner class ViewHolder(private val binding: ReadingPlanItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(data: Plan) {
-            binding.tvScheme.text = data.day
+            val selectedDay = data.day?.let { Globals.changeSelectedDate(it) }
+
+            binding.tvScheme.text = selectedDay
+            binding.tvDisc.text = String.format(
+                "%s %s:%s-%s:%s",
+                data.book?.let { Globals.getBook(it).name },
+                data.fChap.toString(),
+                data.fVer.toString(),
+                data.lChap.toString(),
+                data.lVer.toString()
+            )
+
+            val position = bindingAdapterPosition
+
+            itemView.setOnClickListener {
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClicked(position)
+                }
+            }
         }
     }
 
@@ -28,11 +40,8 @@ class PlanAdapter(private val onItemClick: (Plan, Int) -> Unit): ListAdapter<Pla
             ReadingPlanItemBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
-                false
-            )
-        ) {
-            onItemClick(currentList[it], it)
-        }
+                false)
+        )
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -41,7 +50,6 @@ class PlanAdapter(private val onItemClick: (Plan, Int) -> Unit): ListAdapter<Pla
     }
 
     companion object {
-        // diffUtil: currentList에 있는 각 아이템들을 비교하여 최신 상태를 유지하도록 한다.
         val diffUtil = object : DiffUtil.ItemCallback<Plan>() {
             override fun areItemsTheSame(oldItem: Plan, newItem: Plan): Boolean {
                 return oldItem.day == newItem.day
