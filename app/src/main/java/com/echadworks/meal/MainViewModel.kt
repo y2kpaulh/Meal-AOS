@@ -163,7 +163,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         Log.d(TAG, todayBook.name)
 
-        var verseList: List<String> = listOf()
+        var verseList: MutableList<String> = mutableListOf<String>()
+        var verseNumList: MutableList<Int> = mutableListOf<Int>()
 
         val startChapterIndex = todayPlan.fChap!!
         val startVerse = todayPlan.fVer!!
@@ -173,7 +174,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (todayPlan.fChap == todayPlan.lChap) {
             val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!)
+            verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!).toMutableList()
 
             val chapter = todayBook.chapters[startChapterIndex-1]
             var sliceStartIndex = startVerse-1
@@ -205,9 +206,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
                 val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
                 println(verseText)
-
+                verseList.addAll(verseText)
                 val numericArray = generateNumericArray(sliceStartIndex+1, sliceEndIndex, 1)
                 println(numericArray)
+                verseNumList.addAll(numericArray.toList())
             }
 
             val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
@@ -215,7 +217,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             val todayVerse1 = firstChapter.subList(todayPlan.fVer!! - 1, firstChapter.size)
             val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
 
-            verseList = todayVerse1 + todayVerse2
+            verseList = (todayVerse1 + todayVerse2).toMutableList()
         }
 
         dataSource = arrayListOf()
