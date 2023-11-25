@@ -186,17 +186,17 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             println(numericArray)
 
         } else {
-            for (chapterIndex: Int in startChapterIndex until endChapterIndex) {
+            for (chapterIndex: Int in startChapterIndex-1 until endChapterIndex) {
                 val chapter = todayBook.chapters[chapterIndex]
                 var sliceStartIndex = 0
                 var sliceEndIndex = 0
 
-                if (chapterIndex == startChapterIndex) {
+                if (chapterIndex == startChapterIndex-1) {
                     sliceStartIndex = startVerse-1
                     sliceEndIndex = chapter.size
                 } else if (chapterIndex == endChapterIndex) {
                     sliceStartIndex = 0
-                    sliceEndIndex = endVerse
+                    sliceEndIndex = endVerse + 1
 
                 } else {
                     sliceStartIndex = 0
