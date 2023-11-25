@@ -150,10 +150,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         updateTodayPlan()
     }
-
+    fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
+        val size = ((end - start) / step) + 1
+        return IntArray(size) { start + it * step }
+    }
     private fun updateTodayPlan() {
         val planBook = bible.filter {
-            it.abbrev == todayPlan.book
+            it.abbrev ==  todayPlan.book
         }
 
         todayBook = planBook[0]
@@ -162,10 +165,51 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         var verseList: List<String> = listOf()
 
+        val startChapterIndex = todayPlan.fChap!!
+        val startVerse = todayPlan.fVer!!
+
+        val endChapterIndex = todayPlan.lChap!!
+        val endVerse = todayPlan.lVer!!
+
         if (todayPlan.fChap == todayPlan.lChap) {
             val todayChapter = todayBook.chapters[todayPlan.fChap!! - 1]
             verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!)
+
+            val chapter = todayBook.chapters[startChapterIndex-1]
+            var sliceStartIndex = startVerse-1
+            var sliceEndIndex = endVerse
+
+            val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
+            println(verseText)
+
+            val numericArray = generateNumericArray(sliceStartIndex+1, sliceEndIndex, 1)
+            println(numericArray)
+
         } else {
+            for (chapterIndex: Int in startChapterIndex until endChapterIndex) {
+                val chapter = todayBook.chapters[chapterIndex]
+                var sliceStartIndex = 0
+                var sliceEndIndex = 0
+
+                if (chapterIndex == startChapterIndex) {
+                    sliceStartIndex = startVerse-1
+                    sliceEndIndex = chapter.size
+                } else if (chapterIndex == endChapterIndex) {
+                    sliceStartIndex = 0
+                    sliceEndIndex = endVerse
+
+                } else {
+                    sliceStartIndex = 0
+                    sliceEndIndex = chapter.size
+                }
+
+                val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
+                println(verseText)
+
+                val numericArray = generateNumericArray(sliceStartIndex+1, sliceEndIndex, 1)
+                println(numericArray)
+            }
+
             val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
             val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
             val todayVerse1 = firstChapter.subList(todayPlan.fVer!! - 1, firstChapter.size)
