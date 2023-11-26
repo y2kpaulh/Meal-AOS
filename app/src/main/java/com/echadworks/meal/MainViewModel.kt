@@ -211,13 +211,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 println(numericArray)
                 verseNumList.addAll(numericArray.toList())
             }
-
-            val firstChapter = todayBook.chapters[todayPlan.fChap!! - 1]
-            val lastChapter = todayBook.chapters[todayPlan.lChap!! - 1]
-            val todayVerse1 = firstChapter.subList(todayPlan.fVer!! - 1, firstChapter.size)
-            val todayVerse2 = lastChapter.subList(0, todayPlan.lVer!!)
-
-            verseList = (todayVerse1 + todayVerse2).toMutableList()
         }
 
         dataSource = arrayListOf()
@@ -227,17 +220,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
             if (todayPlan.fChap == todayPlan.lChap) {
                 verseNum = index + todayPlan.fVer!!
+                dataSource.add(Verse(verseNum, string))
             } else {
-                verseNum = index + todayPlan.fVer!!
-
-                var verseCount = todayBook.chapters[todayPlan.fChap!! - 1].size
-
-                if (verseNum > verseCount) {
-                    verseNum -= verseCount
-                }
+                dataSource.add(Verse(verseNumList[index], string))
             }
-
-            dataSource.add(Verse(verseNum, string))
         }
 
         _todayVerse.value = dataSource
