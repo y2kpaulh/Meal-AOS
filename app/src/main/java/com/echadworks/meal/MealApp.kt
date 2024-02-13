@@ -15,7 +15,7 @@ class MealApp : Application() {
 
     override fun onCreate() {
         prefs = PreferenceUtil(applicationContext)
-        MealApp.context = getApplicationContext()
+        MealApp.context = applicationContext
 
         super.onCreate()
 
