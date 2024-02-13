@@ -56,9 +56,11 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.todayDescription.observe(this) {
             binding.tvInfo.text = it
-            binding.tvDate.text = viewModel.todayBook.
         }
 
+        viewModel.scheduleDate.observe(this) {
+            binding.tvDate.text = it
+        }
         viewModel.scheduleList.observe(this) {
             Log.d("", it.toString())
         }
@@ -73,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         _scheduleBottomSheetDialogBinding = BottomSheetDialogScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
         bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
 
-        binding.button.setOnClickListener {
+        binding.scheduleButton.setOnClickListener {
             scheduleBottomSheetDialogBinding?.let { binding ->
                 binding.tvTitle.text = "끼니 일정 리스트"
 
@@ -103,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                 binding.rvSchedule.adapter = adapter
 
                 binding.rvSchedule.post {
-                    binding.rvSchedule.scrollToPosition(30)
+                    binding.rvSchedule.scrollToPosition(viewModel.todayIndex)
                 }
                 bottomSheetDialog.setContentView(binding.root)
                 bottomSheetDialog.show()
@@ -113,6 +115,12 @@ class MainActivity : AppCompatActivity() {
 
     fun updateDateString(date: String) {
         binding.tvDate.text = date
+    }
+
+    override fun onDestroy() {
+        bottomSheetDialog.dismiss()
+        _scheduleBottomSheetDialogBinding = null
+        super.onDestroy()
     }
 
     override fun onResume() {

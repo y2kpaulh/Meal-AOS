@@ -37,6 +37,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private lateinit var planData: PlanData
     private val todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
+    var todayIndex: Int = 0
+
 
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
     val todayVerse: LiveData<ArrayList<Verse>>
@@ -45,9 +47,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private var _scheduleList = MutableLiveData<List<Plan>>()
     val scheduleList: MutableLiveData<List<Plan>> get() = _scheduleList
 
-    lateinit var dataSource: ArrayList<Verse>
+    private lateinit var dataSource: ArrayList<Verse>
 
     private val gson = com.google.gson.Gson()
+
+    private var _scheduleDate = MutableLiveData<String>()
+    val scheduleDate: MutableLiveData<String> get() = _scheduleDate
 
     fun configBible() {
         val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
@@ -103,10 +108,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         if (mealPlan.isNotEmpty()) {
             _scheduleList.value = mealPlan
 
-            val plan = mealPlan.find { plan: Plan ->
-                plan.day.equals(Globals.todayString())
-            }
-            return plan
+            todayIndex = mealPlan.indexOfFirst { it.day == Globals.todayString() }
+
+            return mealPlan[todayIndex]
         }
 
         return null
@@ -255,6 +259,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             todayPlan.lChap.toString(),
             todayPlan.lVer.toString()
         )
+
+        todayPlan.day?.let { date ->
+          _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
+        }
 
         val planData = PlanData(todayBook.name, verseList)
         Timber.tag(TAG).d(planData.toString())
