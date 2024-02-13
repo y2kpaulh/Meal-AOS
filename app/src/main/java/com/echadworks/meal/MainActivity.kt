@@ -37,6 +37,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         config()
+
+        viewModel.getTodayPlan()
     }
 
     private fun config() {
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.todayDescription.observe(this) {
             binding.tvInfo.text = it
+            binding.tvDate.text = viewModel.todayBook.
         }
 
         viewModel.scheduleList.observe(this) {
@@ -116,9 +119,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         requestPermissions()
 
-        if (!binding.tvDate.text.equals(Globals.today())) {
-            binding.tvDate.text = Globals.today()
-            viewModel.getTodayPlan()
-        }
+//        if (!binding.tvDate.text.equals(Globals.today())) {
+//            binding.tvDate.text = Globals.today()
+//            viewModel.getTodayPlan()
+//        }
     }
 }
