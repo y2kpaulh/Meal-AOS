@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.todayDescription.observe(this) {
             binding.tvInfo.text = it
-            binding.tvDate.text = viewModel.todayBook.
         }
 
         viewModel.scheduleList.observe(this) {
@@ -73,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         _scheduleBottomSheetDialogBinding = BottomSheetDialogScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
         bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
 
-        binding.button.setOnClickListener {
+        binding.scheduleButton.setOnClickListener {
             scheduleBottomSheetDialogBinding?.let { binding ->
                 binding.tvTitle.text = "끼니 일정 리스트"
 
