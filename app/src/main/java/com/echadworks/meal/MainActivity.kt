@@ -52,6 +52,10 @@ class MainActivity : AppCompatActivity() {
     private fun initObserver() {
         viewModel.todayVerse.observe(this) {
             (binding.recyclerView.adapter as MealPlanAdapter).setData(it)
+
+            binding.recyclerView.post {
+                binding.recyclerView.scrollToPosition(0)
+            }
         }
 
         viewModel.todayDescription.observe(this) {
