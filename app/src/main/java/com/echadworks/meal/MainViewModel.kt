@@ -18,17 +18,13 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
-import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
     companion object {
         const val TAG: String = "MainViewModel"
     }
 
-    private val context = getApplication<Application>().applicationContext
+    private val context = application.applicationContext
 
     lateinit var planList: List<Plan>
     private lateinit var bible: Bible
@@ -83,7 +79,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (checkedPlan != null) {
             todayPlan = checkedPlan
-            Timber.tag(TAG).d("exist todayPlan: %s", todayPlan.toString())
+             Log.d("exist todayPlan: %s", todayPlan.toString())
 
             updateTodayPlan()
         } else {
@@ -95,7 +91,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     fun setDatePlan(plan: Plan) {
         todayPlan = plan
-        Timber.tag(TAG).d("exist todayPlan: %s", todayPlan.toString())
+        Log.d("exist todayPlan: %s", todayPlan.toString())
 
         updateTodayPlan()
     }
@@ -122,7 +118,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 call: Call<List<Plan>>,
                 response: Response<List<Plan>>
             ) {
-                Timber.tag(TAG).d("%s%s", "success!!" + "\n", response.body()!!.toString())
                 planList = response.body()!!
                 todayIndex = planList.indexOfFirst { it.day == Globals.todayString() }
 
@@ -188,8 +183,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         Log.d(TAG, todayBook.name)
 
-        var verseList: MutableList<String> = mutableListOf<String>()
-        var verseNumList: MutableList<Int> = mutableListOf<Int>()
+        var verseList: MutableList<String> = mutableListOf()
+        var verseNumList: MutableList<Int> = mutableListOf()
 
         val startChapterIndex = todayPlan.fChap!!
         val startVerse = todayPlan.fVer!!
@@ -223,7 +218,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 } else if (chapterIndex == endChapterIndex) {
                     sliceStartIndex = 0
                     sliceEndIndex = endVerse + 1
-
                 } else {
                     sliceStartIndex = 0
                     sliceEndIndex = chapter.size
@@ -232,6 +226,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
                 println(verseText)
                 verseList.addAll(verseText)
+
                 val numericArray = generateNumericArray(sliceStartIndex+1, sliceEndIndex, 1)
                 println(numericArray)
                 verseNumList.addAll(numericArray.toList())
@@ -265,8 +260,5 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         todayPlan.day?.let { date ->
           _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
         }
-
-        val planData = PlanData(todayBook.name, verseList)
-        Timber.tag(TAG).d(planData.toString())
     }
 }
