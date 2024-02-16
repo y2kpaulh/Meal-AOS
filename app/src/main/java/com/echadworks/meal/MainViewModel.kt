@@ -124,6 +124,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             ) {
                 Timber.tag(TAG).d("%s%s", "success!!" + "\n", response.body()!!.toString())
                 planList = response.body()!!
+                todayIndex = planList.indexOfFirst { it.day == Globals.todayString() }
+
                 _scheduleList.value = planList
 
                 saveMealPlan()
