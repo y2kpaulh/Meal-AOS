@@ -2,25 +2,27 @@ package com.echadworks.meal
 
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewGroup
+import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
+import com.echadworks.meal.databinding.BottomSheetDialogScheduleBinding
 import com.echadworks.meal.utils.Globals
-import com.echadworks.meal.utils.Utils
-import kotlinx.coroutines.runBlocking
+import com.google.android.material.bottomsheet.BottomSheetDialog
 
 class MainActivity : AppCompatActivity() {
-    val TAG = "MainActivity"
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private lateinit var bottomSheetDialog: BottomSheetDialog
 
-    val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private var _scheduleBottomSheetDialogBinding: BottomSheetDialogScheduleBinding? = null
+    private val scheduleBottomSheetDialogBinding get() = _scheduleBottomSheetDialogBinding
 
-    lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: MainViewModel
 
-    val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions.containsValue(false)) {
             requestPermissions()
         }
@@ -35,47 +37,103 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         config()
+
+        viewModel.getTodayPlan()
     }
 
     private fun config() {
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.configBible()
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = MealPlanAdapter(ArrayList())
+        initObserver()
+        initView()
+    }
 
-        viewModel.todayVerse.observe(this, Observer{
-            Log.d(TAG, ">>>>>>>>>>>")
-            Log.d(TAG, it.toString())
-            (binding.recyclerView.adapter as MealPlanAdapter).setData(it) //setData함수는 TodoAdapter에서 추가하겠습니다.
-        })
+    private fun initObserver() {
+        viewModel.todayVerse.observe(this) {
+            (binding.recyclerView.adapter as MealPlanAdapter).setData(it)
 
-        viewModel.todayDescription.observe(this, Observer{
+            binding.recyclerView.post {
+                binding.recyclerView.scrollToPosition(0)
+            }
+        }
+
+        viewModel.todayDescription.observe(this) {
             binding.tvInfo.text = it
-        })
+        }
 
-//        binding.button.setOnClickListener {
-//            val bottomSheet = BottomSheetDialog(this)
-//            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
-//        }
+        viewModel.scheduleDate.observe(this) {
+            binding.tvDate.text = it
+        }
+        viewModel.scheduleList.observe(this) {
+            Log.d("", it.toString())
+        }
+    }
 
+    private fun initView() {
+        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.adapter = MealPlanAdapter(this) {
+            Log.d("MainActivity","verse index: %s"+ it.toString())
+        }
+
+        _scheduleBottomSheetDialogBinding = BottomSheetDialogScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
+        bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
+
+        binding.scheduleButton.setOnClickListener {
+            scheduleBottomSheetDialogBinding?.let { binding ->
+                binding.tvTitle.text = "끼니 일정 리스트"
+
+                binding.rvSchedule.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+                val adapter = ScheduleListAdapter(this) {
+                    Log.d("MainActivity","verse index: %s"+ it.toString())
+
+                    viewModel.scheduleList.value?.getOrNull(it)?.let { plan ->
+                        Log.d("", plan.day ?: "")
+
+                        val planDate = plan.day.orEmpty()
+                        val date = Globals.convertStringToDate(planDate)
+
+                        date?.let { dateStr ->
+                            updateDateString(Globals.dateString(dateStr))
+                        }
+
+                        viewModel.setDatePlan(plan)
+                    }
+
+                    bottomSheetDialog.dismiss()
+                }
+
+                adapter.submitList(viewModel.scheduleList.value.orEmpty())
+
+                binding.rvSchedule.adapter = adapter
+
+                binding.rvSchedule.post {
+                    binding.rvSchedule.scrollToPosition(viewModel.todayIndex)
+                }
+                bottomSheetDialog.setContentView(binding.root)
+                bottomSheetDialog.show()
+            }
+        }
+    }
+
+    fun updateDateString(date: String) {
+        binding.tvDate.text = date
+    }
+
+    override fun onDestroy() {
+        bottomSheetDialog.dismiss()
+        _scheduleBottomSheetDialogBinding = null
+        super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
         requestPermissions()
 
-        if (!binding.tvDate.text.equals(Globals.today())) {
-            binding.tvDate.text = Globals.today()
-            viewModel.getTodayPlan()
-        }
+//        if (!binding.tvDate.text.equals(Globals.today())) {
+//            binding.tvDate.text = Globals.today()
+//            viewModel.getTodayPlan()
+//        }
     }
-}
-
-internal fun matchParent(): ViewGroup.LayoutParams {
-    return ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.MATCH_PARENT
-    )
 }

@@ -18,6 +18,10 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
+import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
     companion object {
@@ -27,20 +31,28 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private val context = getApplication<Application>().applicationContext
 
     lateinit var planList: List<Plan>
-    lateinit var bible: Bible
-    lateinit var todayPlan: Plan
-    lateinit var todayBook: Bible.Book
-    lateinit var planData: PlanData
-    val todayDate = Globals.todayString()
+    private lateinit var bible: Bible
+    private lateinit var todayPlan: Plan
+    private lateinit var todayBook: Bible.Book
+    private lateinit var planData: PlanData
+    private val todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
+    var todayIndex: Int = 0
+
 
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
     val todayVerse: LiveData<ArrayList<Verse>>
         get() = _todayVerse
 
-    lateinit var dataSource: ArrayList<Verse>
+    private var _scheduleList = MutableLiveData<List<Plan>>()
+    val scheduleList: MutableLiveData<List<Plan>> get() = _scheduleList
+
+    private lateinit var dataSource: ArrayList<Verse>
 
     private val gson = com.google.gson.Gson()
+
+    private var _scheduleDate = MutableLiveData<String>()
+    val scheduleDate: MutableLiveData<String> get() = _scheduleDate
 
     fun configBible() {
         val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
@@ -53,7 +65,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         dataSource = arrayListOf()
     }
 
-    fun readSavedMealPlan() : List<Plan>? {
+    private fun readSavedMealPlan() : List<Plan>? {
         // creating a new variable for gson.
         val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
 
@@ -71,7 +83,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (checkedPlan != null) {
             todayPlan = checkedPlan
-            Log.d(TAG, "exist todayPlan: " + todayPlan.toString())
+            Timber.tag(TAG).d("exist todayPlan: %s", todayPlan.toString())
 
             updateTodayPlan()
         } else {
@@ -81,27 +93,38 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun existTodayPlan() : Plan? {
+    fun setDatePlan(plan: Plan) {
+        todayPlan = plan
+        Timber.tag(TAG).d("exist todayPlan: %s", todayPlan.toString())
+
+        updateTodayPlan()
+    }
+
+
+
+    private fun existTodayPlan() : Plan? {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
-            val plan = mealPlan.find { plan: Plan ->
-                plan.day.equals(Globals.todayString())
-            }
-            return plan
+            _scheduleList.value = mealPlan
+
+            todayIndex = mealPlan.indexOfFirst { it.day == Globals.todayString() }
+
+            return mealPlan[todayIndex]
         }
 
         return null
     }
 
-    suspend fun getMealPlan() {
+    private suspend fun getMealPlan() {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
                 call: Call<List<Plan>>,
                 response: Response<List<Plan>>
             ) {
-                Log.d(TAG, "success!!\n" + response.body()!!.toString())
+                Timber.tag(TAG).d("%s%s", "success!!" + "\n", response.body()!!.toString())
                 planList = response.body()!!
+                _scheduleList.value = planList
 
                 saveMealPlan()
 
@@ -237,7 +260,11 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             todayPlan.lVer.toString()
         )
 
+        todayPlan.day?.let { date ->
+          _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
+        }
+
         val planData = PlanData(todayBook.name, verseList)
-        Log.d(TAG, planData.toString())
+        Timber.tag(TAG).d(planData.toString())
     }
 }
