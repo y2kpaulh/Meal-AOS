@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.scheduleButton.setOnClickListener {
             scheduleBottomSheetDialogBinding?.let { binding ->
-                binding.tvTitle.text = "끼니 일정 리스트"
+//                binding.tvTitle.text = "끼니 일정 리스트"
 
                 binding.rvSchedule.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
