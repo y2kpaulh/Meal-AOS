@@ -33,8 +33,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private lateinit var planData: PlanData
     private val todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
-    var todayIndex: Int = 0
-
 
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
     val todayVerse: LiveData<ArrayList<Verse>>
@@ -96,15 +94,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         updateTodayPlan()
     }
 
-
-
     private fun existTodayPlan() : Plan? {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
             _scheduleList.value = mealPlan
 
-            todayIndex = mealPlan.indexOfFirst { it.day == Globals.todayString() }
+            val todayIndex = getTodayIndex()
 
             return mealPlan[todayIndex]
         }
@@ -119,7 +115,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 response: Response<List<Plan>>
             ) {
                 planList = response.body()!!
-                todayIndex = planList.indexOfFirst { it.day == Globals.todayString() }
 
                 _scheduleList.value = planList
 
@@ -260,5 +255,11 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         todayPlan.day?.let { date ->
           _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
         }
+    }
+
+    fun getTodayIndex(): Int {
+        val schedule = scheduleList.value.orEmpty()
+        val todayString = Globals.todayString()
+        return schedule.indexOfFirst { it.day == todayString } + 1
     }
 }
