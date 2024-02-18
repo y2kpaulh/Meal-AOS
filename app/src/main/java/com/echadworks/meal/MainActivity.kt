@@ -79,42 +79,53 @@ class MainActivity : AppCompatActivity() {
         _scheduleBottomSheetDialogBinding = BottomSheetDialogScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
         bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
 
-        binding.scheduleButton.setOnClickListener {
+        binding.tvDate.setOnClickListener {
             scheduleBottomSheetDialogBinding?.let { binding ->
-//                binding.tvTitle.text = "끼니 일정 리스트"
-
-                binding.rvSchedule.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-
-                val adapter = ScheduleListAdapter(this) {
-                    Log.d("MainActivity","verse index: %s"+ it.toString())
-
-                    viewModel.scheduleList.value?.getOrNull(it)?.let { plan ->
-                        Log.d("", plan.day ?: "")
-
-                        val planDate = plan.day.orEmpty()
-                        val date = Globals.convertStringToDate(planDate)
-
-                        date?.let { dateStr ->
-                            updateDateString(Globals.dateString(dateStr))
-                        }
-
-                        viewModel.setDatePlan(plan)
-                    }
-
-                    bottomSheetDialog.dismiss()
-                }
-
-                adapter.submitList(viewModel.scheduleList.value.orEmpty())
-
-                binding.rvSchedule.adapter = adapter
-
-                binding.rvSchedule.post {
-                    binding.rvSchedule.scrollToPosition(viewModel.todayIndex)
-                }
-                bottomSheetDialog.setContentView(binding.root)
-                bottomSheetDialog.show()
+                initScheduleList(binding)
             }
         }
+
+        binding.scheduleButton.setOnClickListener {
+            scheduleBottomSheetDialogBinding?.let { binding ->
+                initScheduleList(binding)
+            }
+        }
+    }
+
+    private fun initScheduleList(binding: BottomSheetDialogScheduleBinding) {
+        binding.rvSchedule.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+        val adapter = ScheduleListAdapter(this) {
+            Log.d("MainActivity", "verse index: %s" + it.toString())
+
+            viewModel.scheduleList.value?.getOrNull(it)?.let { plan ->
+                Log.d("", plan.day ?: "")
+
+                val planDate = plan.day.orEmpty()
+                val date = Globals.convertStringToDate(planDate)
+
+                date?.let { dateStr ->
+                    updateDateString(Globals.dateString(dateStr))
+                }
+
+                viewModel.setDatePlan(plan)
+            }
+
+            bottomSheetDialog.dismiss()
+        }
+
+        adapter.submitList(viewModel.scheduleList.value.orEmpty())
+
+        binding.rvSchedule.adapter = adapter
+
+        binding.rvSchedule.post {
+            val todayIndex = viewModel.getTodayIndex()
+            binding.rvSchedule.scrollToPosition(todayIndex)
+        }
+
+        bottomSheetDialog.setContentView(binding.root)
+        bottomSheetDialog.show()
     }
 
     fun updateDateString(date: String) {
