@@ -13,7 +13,6 @@
         android:layout_height="24dp"
         android:layout_margin="40dp"
         android:padding="20dp"
-        android:visibility="gone"
         android:foreground="@drawable/ic_information"
         android:background="@color/transparent"
         android:backgroundTint="@color/transparent"

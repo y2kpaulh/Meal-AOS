@@ -260,6 +260,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     fun getTodayIndex(): Int {
         val schedule = scheduleList.value.orEmpty()
         val todayString = Globals.todayString()
-        return schedule.indexOfFirst { it.day == todayString } + 1
+        return schedule.indexOfFirst { it.day == todayString }
     }
 }
