@@ -1,8 +1,10 @@
 package com.echadworks.meal
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -12,6 +14,7 @@ import com.echadworks.meal.databinding.BottomSheetAppInfoBinding
 import com.echadworks.meal.databinding.BottomSheetScheduleBinding
 import com.echadworks.meal.utils.Globals
 import com.google.android.material.bottomsheet.BottomSheetDialog
+
 
 class MainActivity : AppCompatActivity() {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -140,8 +143,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initAppInfoSheet(binding: BottomSheetAppInfoBinding) {
-        binding.tvTitle.text = "앱 정보"
         binding.tvAppVersion.text = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+
+        binding.tvFeedback.setOnClickListener(View.OnClickListener {
+            val email = Intent(Intent.ACTION_SEND)
+            email.setType("plain/text")
+            val address = arrayOf("echadworks@gmail.com")
+            email.putExtra(Intent.EXTRA_EMAIL, address)
+//            email.putExtra(Intent.EXTRA_SUBJECT, "test@test")
+//            email.putExtra(Intent.EXTRA_TEXT, "내용 미리보기 (미리적을 수 있음)")
+            startActivity(email)
+        })
         bottomSheetDialog.setContentView(binding.root)
         bottomSheetDialog.show()
     }
