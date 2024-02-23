@@ -8,4 +8,63 @@
         <item name="android:windowCloseOnTouchOutside">true</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
+    <style name="big_title_text">
+        <item name="android:fontFamily">@font/nanumbarungothic_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/main_text</item>
+    </style>
+
+    <style name="title_text">
+        <item name="android:fontFamily">@font/nanumbarungothic_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/main_text</item>
+    </style>
+
+    <style name="title_black_text">
+        <item name="android:fontFamily">@font/nanumbarungothic_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="title_gray_text">
+        <item name="android:fontFamily">@font/nanumbarungothic_bold</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <style name="title_text_start_align" parent="title_text">
+        <item name="android:textAlignment">textStart</item>
+        <item name="android:gravity">start</item>
+    </style>
+
+    <style name="title_text_start_align_1_line" parent="title_text">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <style name="normal_text">
+        <item name="android:fontFamily">@font/nanumbarungothic</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/main_text</item>
+    </style>
+    <style name="small_text">
+        <item name="android:fontFamily">@font/nanumbarungothic</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/main_text</item>
+    </style>
+    <style name="small_text_start_align" parent="small_text">
+        <item name="android:textAlignment">textStart</item>
+        <item name="android:gravity">start</item>
+    </style>
+
+    <style name="small_text_start_align_1_line" parent="small_text">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+    </style>
 </resources>

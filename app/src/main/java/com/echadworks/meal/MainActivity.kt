@@ -1,5 +1,6 @@
 package com.echadworks.meal
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,16 +10,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
-import com.echadworks.meal.databinding.BottomSheetDialogScheduleBinding
+import com.echadworks.meal.databinding.BottomSheetAppInfoBinding
+import com.echadworks.meal.databinding.BottomSheetScheduleBinding
 import com.echadworks.meal.utils.Globals
 import com.google.android.material.bottomsheet.BottomSheetDialog
+
 
 class MainActivity : AppCompatActivity() {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private lateinit var bottomSheetDialog: BottomSheetDialog
 
-    private var _scheduleBottomSheetDialogBinding: BottomSheetDialogScheduleBinding? = null
-    private val scheduleBottomSheetDialogBinding get() = _scheduleBottomSheetDialogBinding
+    private var _scheduleBottomSheetBinding: BottomSheetScheduleBinding? = null
+    private var _appInfoBottomSheetDialogBinding: BottomSheetAppInfoBinding? = null
+
+    private val scheduleBottomSheetBinding get() = _scheduleBottomSheetBinding
+    private val appInfoBottomSheetDialogBinding get() = _appInfoBottomSheetDialogBinding
 
     private lateinit var viewModel: MainViewModel
 
@@ -76,23 +82,31 @@ class MainActivity : AppCompatActivity() {
             Log.d("MainActivity","verse index: %s"+ it.toString())
         }
 
-        _scheduleBottomSheetDialogBinding = BottomSheetDialogScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
+        _scheduleBottomSheetBinding = BottomSheetScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
+        _appInfoBottomSheetDialogBinding = BottomSheetAppInfoBinding.inflate(LayoutInflater.from(this),binding.root,false)
+
         bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
 
         binding.tvDate.setOnClickListener {
-            scheduleBottomSheetDialogBinding?.let { binding ->
+            scheduleBottomSheetBinding?.let { binding ->
                 initScheduleList(binding)
             }
         }
 
         binding.scheduleButton.setOnClickListener {
-            scheduleBottomSheetDialogBinding?.let { binding ->
+            scheduleBottomSheetBinding?.let { binding ->
                 initScheduleList(binding)
+            }
+        }
+
+        binding.btnAppInfo.setOnClickListener {
+            appInfoBottomSheetDialogBinding?.let { binding ->
+                initAppInfoSheet(binding)
             }
         }
     }
 
-    private fun initScheduleList(binding: BottomSheetDialogScheduleBinding) {
+    private fun initScheduleList(binding: BottomSheetScheduleBinding) {
         binding.rvSchedule.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
@@ -120,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvSchedule.adapter = adapter
 
         binding.rvSchedule.post {
-            val todayIndex = viewModel.getTodayIndex()
+            val todayIndex = viewModel.getTodayIndex() + 1
             binding.rvSchedule.scrollToPosition(todayIndex)
         }
 
@@ -128,13 +142,30 @@ class MainActivity : AppCompatActivity() {
         bottomSheetDialog.show()
     }
 
-    fun updateDateString(date: String) {
+    private fun initAppInfoSheet(binding: BottomSheetAppInfoBinding) {
+        binding.tvAppVersion.text = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+
+        binding.tvFeedback.setOnClickListener(View.OnClickListener {
+            val email = Intent(Intent.ACTION_SEND)
+            email.setType("plain/text")
+            val address = arrayOf("echadworks@gmail.com")
+            email.putExtra(Intent.EXTRA_EMAIL, address)
+//            email.putExtra(Intent.EXTRA_SUBJECT, "test@test")
+//            email.putExtra(Intent.EXTRA_TEXT, "내용 미리보기 (미리적을 수 있음)")
+            startActivity(email)
+        })
+        bottomSheetDialog.setContentView(binding.root)
+        bottomSheetDialog.show()
+    }
+
+    private fun updateDateString(date: String) {
         binding.tvDate.text = date
     }
 
     override fun onDestroy() {
         bottomSheetDialog.dismiss()
-        _scheduleBottomSheetDialogBinding = null
+        _scheduleBottomSheetBinding = null
+        _appInfoBottomSheetDialogBinding = null
         super.onDestroy()
     }
 
