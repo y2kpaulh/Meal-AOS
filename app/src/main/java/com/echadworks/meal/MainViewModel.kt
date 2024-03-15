@@ -98,10 +98,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         val mealPlan = readSavedMealPlan() ?: listOf()
 
         if (mealPlan.isNotEmpty()) {
+            val todayIndex = getTodayIndex(mealPlan)
+
             _scheduleList.value = mealPlan
 
-            val todayIndex = getTodayIndex()
 
+            Log.d("", "todayIndex: ${todayIndex}")
             return mealPlan[todayIndex]
         }
 
@@ -179,7 +181,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         Log.d(TAG, todayBook.name)
 
         var verseList: MutableList<String> = mutableListOf()
-        var verseNumList: MutableList<Int> = mutableListOf()
+        val verseNumList: MutableList<Int> = mutableListOf()
 
         val startChapterIndex = todayPlan.fChap!!
         val startVerse = todayPlan.fVer!!
@@ -257,8 +259,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun getTodayIndex(): Int {
-        val schedule = scheduleList.value.orEmpty()
+    fun getTodayIndex(planList: List<Plan>): Int {
+        val schedule = planList
         val todayString = Globals.todayString()
         return schedule.indexOfFirst { it.day == todayString }
     }

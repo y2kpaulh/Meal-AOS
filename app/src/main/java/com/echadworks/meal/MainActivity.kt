@@ -129,12 +129,14 @@ class MainActivity : AppCompatActivity() {
             bottomSheetDialog.dismiss()
         }
 
-        adapter.submitList(viewModel.scheduleList.value.orEmpty())
+        val planList = viewModel.scheduleList.value.orEmpty()
+
+        adapter.submitList(planList)
 
         binding.rvSchedule.adapter = adapter
 
         binding.rvSchedule.post {
-            val todayIndex = viewModel.getTodayIndex() + 1
+            val todayIndex = viewModel.getTodayIndex(planList) + 1
             binding.rvSchedule.scrollToPosition(todayIndex)
         }
 
