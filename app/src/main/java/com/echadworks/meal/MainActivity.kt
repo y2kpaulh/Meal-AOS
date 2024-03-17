@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -28,11 +29,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
 
-    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        if (permissions.containsValue(false)) {
-            requestPermissions()
+    private val permissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            if (permissions.containsValue(false)) {
+                requestPermissions()
+            }
         }
-    }
 
     private fun requestPermissions() {
         permissionLauncher.launch(Globals.requiredPermissions)
@@ -71,19 +73,24 @@ class MainActivity : AppCompatActivity() {
         viewModel.scheduleDate.observe(this) {
             binding.tvDate.text = it
         }
-        viewModel.scheduleList.observe(this) {
+
+        viewModel.requestServerErrorMessage.observe(this) {
             Log.d("", it.toString())
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun initView() {
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter(this) {
-            Log.d("MainActivity","verse index: %s"+ it.toString())
+            Log.d("MainActivity", "verse index: %s" + it.toString())
         }
 
-        _scheduleBottomSheetBinding = BottomSheetScheduleBinding.inflate(LayoutInflater.from(this),binding.root,false)
-        _appInfoBottomSheetDialogBinding = BottomSheetAppInfoBinding.inflate(LayoutInflater.from(this),binding.root,false)
+        _scheduleBottomSheetBinding =
+            BottomSheetScheduleBinding.inflate(LayoutInflater.from(this), binding.root, false)
+        _appInfoBottomSheetDialogBinding =
+            BottomSheetAppInfoBinding.inflate(LayoutInflater.from(this), binding.root, false)
 
         bottomSheetDialog = BottomSheetDialog(this, R.style.bottom_sheet_dialog)
 
@@ -111,37 +118,34 @@ class MainActivity : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         val adapter = ScheduleListAdapter(this) {
-            Log.d("MainActivity", "verse index: %s" + it.toString())
-
+            Log.d("MainActivity", "verse index: %s$it")
             viewModel.scheduleList.value?.getOrNull(it)?.let { plan ->
-                Log.d("", plan.day ?: "")
-
                 val planDate = plan.day.orEmpty()
                 val date = Globals.convertStringToDate(planDate)
 
                 date?.let { dateStr ->
                     updateDateString(Globals.dateString(dateStr))
                 }
-
                 viewModel.setDatePlan(plan)
             }
 
             bottomSheetDialog.dismiss()
         }
 
-        val planList = viewModel.scheduleList.value.orEmpty()
-
-        adapter.submitList(planList)
-
         binding.rvSchedule.adapter = adapter
 
-        binding.rvSchedule.post {
-            val todayIndex = viewModel.getTodayIndex(planList) + 1
-            binding.rvSchedule.scrollToPosition(todayIndex)
-        }
+        val planList = viewModel.scheduleList.value.orEmpty()
 
-        bottomSheetDialog.setContentView(binding.root)
-        bottomSheetDialog.show()
+        if (planList.isNotEmpty()) {
+            adapter.submitList(planList)
+
+            binding.rvSchedule.post {
+                val todayIndex = viewModel.getTodayIndex(planList) + 1
+                binding.rvSchedule.scrollToPosition(todayIndex)
+            }
+            bottomSheetDialog.setContentView(binding.root)
+            bottomSheetDialog.show()
+        }
     }
 
     private fun initAppInfoSheet(binding: BottomSheetAppInfoBinding) {

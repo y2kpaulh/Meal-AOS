@@ -26,7 +26,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private val context = application.applicationContext
 
-    lateinit var planList: List<Plan>
     private lateinit var bible: Bible
     private lateinit var todayPlan: Plan
     private lateinit var todayBook: Bible.Book
@@ -48,12 +47,14 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private var _scheduleDate = MutableLiveData<String>()
     val scheduleDate: MutableLiveData<String> get() = _scheduleDate
 
+    private var _requestServerErrorMessage = MutableLiveData<String>()
+    val requestServerErrorMessage: MutableLiveData<String> get() = _requestServerErrorMessage
+
     fun configBible() {
         val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
 
         bible = Gson().fromJson(bibleJsonString, bibleType)
-        planList = listOf()
         todayPlan = Plan()
         planData = PlanData()
         dataSource = arrayListOf()
@@ -77,13 +78,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (checkedPlan != null) {
             todayPlan = checkedPlan
-             Log.d("exist todayPlan: %s", todayPlan.toString())
-
+            Log.d("exist todayPlan: %s", todayPlan.toString())
             updateTodayPlan()
         } else {
-            runBlocking {
-                getMealPlan()
-            }
+            getMealPlan()
         }
     }
 
@@ -102,7 +100,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
             _scheduleList.value = mealPlan
 
-
             Log.d("", "todayIndex: ${todayIndex}")
             return mealPlan[todayIndex]
         }
@@ -110,19 +107,20 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         return null
     }
 
-    private suspend fun getMealPlan() {
+    private fun getMealPlan() {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
                 call: Call<List<Plan>>,
                 response: Response<List<Plan>>
             ) {
-                planList = response.body()!!
-
-                _scheduleList.value = planList
-
-                saveMealPlan()
-
-                getPlanData()
+                response.body()?.let { planList ->
+                    if (getPlanData(planList)) {
+                        _scheduleList.value = planList
+                        saveMealPlan(planList)
+                    } else {
+                        _requestServerErrorMessage.value = "오늘 끼니 일정을 찾을 수 없습니다."
+                    }
+                }
             }
 
             override fun onFailure(
@@ -130,11 +128,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 t: Throwable
             ) {
                 Log.d(TAG, t.message.toString())
+                _requestServerErrorMessage.value = "서버 요청시 에러가 발생했습니다."
             }
         })
     }
 
-    private fun saveMealPlan() {
+    private fun saveMealPlan(planList: List<Plan>) {
         // method for saving the data in array list.
         // creating a variable for storing data in
         // shared preferences.
@@ -156,18 +155,26 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         editor.apply()
     }
 
-    private fun getPlanData() {
+    private fun getPlanData(planList: List<Plan>) : Boolean {
         Log.d(TAG, "planList: " + planList)
 
         val plan = planList.filter {
             it.day == todayDate
         }
-        todayPlan = plan[0]
-        Log.d(TAG, "downloaded todayPlan: " + plan)
 
-        updateTodayPlan()
+        if (plan.isNotEmpty()) {
+            todayPlan = plan[0]
+            Log.d(TAG, "downloaded todayPlan: " + plan)
+
+            updateTodayPlan()
+
+            return true
+        }
+
+        return false
     }
-    fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
+
+    private fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
         val size = ((end - start) / step) + 1
         return IntArray(size) { start + it * step }
     }
