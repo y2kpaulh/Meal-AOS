@@ -11,7 +11,7 @@ android {
         applicationId "com.echadworks.meal"
         minSdk 26
         targetSdk 34
-        versionCode 16
+        versionCode 17
         versionName "1.1.16"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
