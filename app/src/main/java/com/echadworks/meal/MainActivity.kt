@@ -119,8 +119,8 @@ class MainActivity : AppCompatActivity() {
                 val planDate = plan.day.orEmpty()
                 val date = Globals.convertStringToDate(planDate)
 
-                date?.let { dateStr ->
-                    updateDateString(Globals.dateString(dateStr))
+                date?.let {
+                    updateDateString(Globals.headerDateString(it))
                 }
 
                 viewModel.setDatePlan(plan)

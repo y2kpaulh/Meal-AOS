@@ -102,8 +102,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
             _scheduleList.value = mealPlan
 
-
-            Log.d("", "todayIndex: ${todayIndex}")
+            Log.d("", "todayIndex: $todayIndex")
             return mealPlan[todayIndex]
         }
 
@@ -159,18 +158,21 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
 
+        val today = Globals.todayString()
         val plan = planList.filter {
-            it.day == todayDate
+            it.day == today
         }
         todayPlan = plan[0]
-        Log.d(TAG, "downloaded todayPlan: " + plan)
+        Log.d(TAG, "downloaded todayPlan: $plan")
 
         updateTodayPlan()
     }
-    fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
+
+    private fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
         val size = ((end - start) / step) + 1
         return IntArray(size) { start + it * step }
     }
+
     private fun updateTodayPlan() {
         val planBook = bible.filter {
             it.abbrev ==  todayPlan.book
@@ -254,8 +256,10 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             todayPlan.lVer.toString()
         )
 
-        todayPlan.day?.let { date ->
-          _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
+        todayPlan.day?.let { dateStr ->
+          _scheduleDate.value = Globals.convertStringToDate(dateStr).let { localDate ->
+              Globals.headerDateString(localDate)
+           }
         }
     }
 
