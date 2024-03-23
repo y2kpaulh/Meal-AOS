@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.echadworks.meal.databinding.ItemScheduleListBinding
-import com.echadworks.meal.model.Verse
 import com.echadworks.meal.network.Plan
 import com.echadworks.meal.utils.Globals
 
@@ -44,8 +43,8 @@ class ScheduleListAdapter(private val context: Context, private val clickListene
             val planDate = data.day.orEmpty()
             val date = Globals.convertStringToDate(planDate)
 
-            date?.let { dateStr ->
-                binding.tvDate.text = Globals.dateString(dateStr)
+            date?.let {
+                binding.tvDate.text = Globals.headerDateString(it)
             }
 
             binding.tvMeal.text = String.format(

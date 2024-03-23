@@ -26,6 +26,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private val context = application.applicationContext
 
+    lateinit var planList: List<Plan>
     private lateinit var bible: Bible
     private lateinit var todayPlan: Plan
     private lateinit var todayBook: Bible.Book
@@ -47,14 +48,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private var _scheduleDate = MutableLiveData<String>()
     val scheduleDate: MutableLiveData<String> get() = _scheduleDate
 
-    private var _requestServerErrorMessage = MutableLiveData<String>()
-    val requestServerErrorMessage: MutableLiveData<String> get() = _requestServerErrorMessage
-
     fun configBible() {
         val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
 
         bible = Gson().fromJson(bibleJsonString, bibleType)
+        planList = listOf()
         todayPlan = Plan()
         planData = PlanData()
         dataSource = arrayListOf()
@@ -78,10 +77,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (checkedPlan != null) {
             todayPlan = checkedPlan
-            Log.d("exist todayPlan: %s", todayPlan.toString())
+             Log.d("exist todayPlan: %s", todayPlan.toString())
+
             updateTodayPlan()
         } else {
-            getMealPlan()
+            runBlocking {
+                getMealPlan()
+            }
         }
     }
 
@@ -94,33 +96,31 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private fun existTodayPlan() : Plan? {
         val mealPlan = readSavedMealPlan() ?: listOf()
+        val todayIndex = getTodayIndex(mealPlan)
 
-        if (mealPlan.isNotEmpty()) {
-            val todayIndex = getTodayIndex(mealPlan)
-
+        if (mealPlan.isNotEmpty() && todayIndex != null) {
             _scheduleList.value = mealPlan
 
-            Log.d("", "todayIndex: ${todayIndex}")
+            Log.d("", "todayIndex: $todayIndex")
             return mealPlan[todayIndex]
         }
 
         return null
     }
 
-    private fun getMealPlan() {
+    private suspend fun getMealPlan() {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
                 call: Call<List<Plan>>,
                 response: Response<List<Plan>>
             ) {
-                response.body()?.let { planList ->
-                    if (getPlanData(planList)) {
-                        _scheduleList.value = planList
-                        saveMealPlan(planList)
-                    } else {
-                        _requestServerErrorMessage.value = "오늘 끼니 일정을 찾을 수 없습니다."
-                    }
-                }
+                planList = response.body()!!
+
+                _scheduleList.value = planList
+
+                saveMealPlan()
+
+                getPlanData()
             }
 
             override fun onFailure(
@@ -128,12 +128,11 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 t: Throwable
             ) {
                 Log.d(TAG, t.message.toString())
-                _requestServerErrorMessage.value = "서버 요청시 에러가 발생했습니다."
             }
         })
     }
 
-    private fun saveMealPlan(planList: List<Plan>) {
+    private fun saveMealPlan() {
         // method for saving the data in array list.
         // creating a variable for storing data in
         // shared preferences.
@@ -155,29 +154,24 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         editor.apply()
     }
 
-    private fun getPlanData(planList: List<Plan>) : Boolean {
+    private fun getPlanData() {
         Log.d(TAG, "planList: " + planList)
 
+        val today = Globals.todayString()
         val plan = planList.filter {
-            it.day == todayDate
+            it.day == today
         }
+        todayPlan = plan[0]
+        Log.d(TAG, "downloaded todayPlan: $plan")
 
-        if (plan.isNotEmpty()) {
-            todayPlan = plan[0]
-            Log.d(TAG, "downloaded todayPlan: " + plan)
-
-            updateTodayPlan()
-
-            return true
-        }
-
-        return false
+        updateTodayPlan()
     }
 
     private fun generateNumericArray(start: Int, end: Int, step: Int): IntArray {
         val size = ((end - start) / step) + 1
         return IntArray(size) { start + it * step }
     }
+
     private fun updateTodayPlan() {
         val planBook = bible.filter {
             it.abbrev ==  todayPlan.book
@@ -261,14 +255,21 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             todayPlan.lVer.toString()
         )
 
-        todayPlan.day?.let { date ->
-          _scheduleDate.value = Globals.convertStringToDate(date)?.let { Globals.dateString(it) }
+        todayPlan.day?.let { dateStr ->
+          _scheduleDate.value = Globals.convertStringToDate(dateStr).let { localDate ->
+              Globals.headerDateString(localDate)
+           }
         }
     }
 
-    fun getTodayIndex(planList: List<Plan>): Int {
-        val schedule = planList
+    fun getTodayIndex(planList: List<Plan>): Int? {
         val todayString = Globals.todayString()
-        return schedule.indexOfFirst { it.day == todayString }
+        return findIndexUsingMapIndexedNotNull(planList, todayString)
+    }
+
+    private fun findIndexUsingMapIndexedNotNull(list: List<Plan>, day: String): Int? {
+        return list.mapIndexedNotNull { index, plan ->
+            if (plan.day == day) index else null
+        }.firstOrNull()
     }
 }
