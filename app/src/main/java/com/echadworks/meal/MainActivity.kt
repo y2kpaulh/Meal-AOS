@@ -136,8 +136,11 @@ class MainActivity : AppCompatActivity() {
         binding.rvSchedule.adapter = adapter
 
         binding.rvSchedule.post {
-            val todayIndex = viewModel.getTodayIndex(planList) + 1
-            binding.rvSchedule.scrollToPosition(todayIndex)
+            val searchIndex = viewModel.getTodayIndex(planList)
+            if (searchIndex!=null) {
+                val searchDayIndex = searchIndex + 1
+                binding.rvSchedule.scrollToPosition(searchDayIndex)
+            }
         }
 
         bottomSheetDialog.setContentView(binding.root)

@@ -96,10 +96,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private fun existTodayPlan() : Plan? {
         val mealPlan = readSavedMealPlan() ?: listOf()
+        val todayIndex = getTodayIndex(mealPlan)
 
-        if (mealPlan.isNotEmpty()) {
-            val todayIndex = getTodayIndex(mealPlan)
-
+        if (mealPlan.isNotEmpty() && todayIndex != null) {
             _scheduleList.value = mealPlan
 
             Log.d("", "todayIndex: $todayIndex")
@@ -263,9 +262,14 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun getTodayIndex(planList: List<Plan>): Int {
-        val schedule = planList
+    fun getTodayIndex(planList: List<Plan>): Int? {
         val todayString = Globals.todayString()
-        return schedule.indexOfFirst { it.day == todayString }
+        return findIndexUsingMapIndexedNotNull(planList, todayString)
+    }
+
+    private fun findIndexUsingMapIndexedNotNull(list: List<Plan>, day: String): Int? {
+        return list.mapIndexedNotNull { index, plan ->
+            if (plan.day == day) index else null
+        }.firstOrNull()
     }
 }
