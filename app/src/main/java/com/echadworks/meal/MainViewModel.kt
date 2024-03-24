@@ -43,6 +43,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var _scheduleList = MutableLiveData<List<Plan>>()
     val scheduleList: MutableLiveData<List<Plan>> get() = _scheduleList
 
+    var checkBoxList: ArrayList<Boolean> = arrayListOf(false, false, false)
+
     private lateinit var dataSource: ArrayList<Verse>
 
     private val gson = Gson()
@@ -68,7 +70,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (mealPlanStr.isNotEmpty()) {
             return gson.fromJson(mealPlanStr, Array<Plan>::class.java).toList()
         }
-
         return  null
     }
 
@@ -100,11 +101,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         if (mealPlan.isNotEmpty() && todayIndex != null) {
             _scheduleList.value = mealPlan
-
             Log.d("", "todayIndex: $todayIndex")
             return mealPlan[todayIndex]
         }
-
         return null
     }
 
@@ -119,7 +118,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _scheduleList.value = planList
 
                 saveMealPlan()
-
                 getPlanData()
             }
 
@@ -190,7 +188,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!).toMutableList()
 
             val chapter = todayBook.chapters[startChapterIndex-1]
-            var sliceStartIndex = startVerse-1
+            val sliceStartIndex = startVerse-1
             var sliceEndIndex = endVerse
 
             val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
@@ -208,7 +206,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (chapterIndex == startChapterIndex-1) {
                     sliceStartIndex = startVerse-1
                     sliceEndIndex = chapter.size
-                } else  else {
+                } else {
                     sliceStartIndex = 0
                     sliceEndIndex = chapter.size
                 }
