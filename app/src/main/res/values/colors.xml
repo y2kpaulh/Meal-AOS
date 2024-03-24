@@ -17,5 +17,5 @@
     <color name="divider">#5A5A5A</color>
 
     <color name="theme_layout_color">#FFFFFF</color>
-    <color name="theme_text_color">#000000</color>
+    <color name="theme_text_color">@color/main_text</color>
 </resources>
