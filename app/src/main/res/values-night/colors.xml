@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main_background">@color/cardview_dark_background</color>
+    <color name="main_border">#EDEDED</color>
+    <color name="main_text">#5A5A5A</color>
+    <color name="sub_text">#A2A2A2</color>
+    <color name="divider">#5A5A5A</color>
+
+    <color name="theme_layout_color">#2B2D30</color>
+    <color name="theme_text_color">#FFFFFF</color>
+</resources>

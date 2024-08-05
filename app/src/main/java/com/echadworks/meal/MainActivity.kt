@@ -1,12 +1,14 @@
 package com.echadworks.meal
 
-import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
+import android.widget.CheckBox
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.echadworks.meal.databinding.ActivityMainBinding
@@ -27,20 +29,23 @@ class MainActivity : AppCompatActivity() {
     private val appInfoBottomSheetDialogBinding get() = _appInfoBottomSheetDialogBinding
 
     private lateinit var viewModel: MainViewModel
+    private lateinit var checkBoxMenu: ArrayList<CheckBox>
 
     private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions.containsValue(false)) {
             requestPermissions()
         }
     }
-
     private fun requestPermissions() {
         permissionLauncher.launch(Globals.requiredPermissions)
     }
+    private lateinit var sharedPreferences: SharedPreferences
+    private var themeIndex: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
 
         config()
 
@@ -50,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     private fun config() {
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.configBible()
+
+        sharedPreferences = applicationContext.getSharedPreferences("shared preferences", MODE_PRIVATE)
+        themeIndex = sharedPreferences.getInt("themeIndex", 0)
 
         initObserver()
         initView()
@@ -77,6 +85,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() {
+
+        when (themeIndex) {
+            0 -> {
+                changeTheme(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+
+            1 -> {
+                changeTheme(AppCompatDelegate.MODE_NIGHT_YES)
+            }
+
+            2 -> {
+                changeTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+        }
+
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = MealPlanAdapter(this) {
             Log.d("MainActivity","verse index: %s"+ it.toString())
@@ -150,17 +173,64 @@ class MainActivity : AppCompatActivity() {
     private fun initAppInfoSheet(binding: BottomSheetAppInfoBinding) {
         binding.tvAppVersion.text = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
 
-        binding.tvFeedback.setOnClickListener(View.OnClickListener {
-            val email = Intent(Intent.ACTION_SEND)
-            email.setType("plain/text")
-            val address = arrayOf("echadworks@gmail.com")
-            email.putExtra(Intent.EXTRA_EMAIL, address)
-//            email.putExtra(Intent.EXTRA_SUBJECT, "test@test")
-//            email.putExtra(Intent.EXTRA_TEXT, "내용 미리보기 (미리적을 수 있음)")
-            startActivity(email)
-        })
+//        binding.tvFeedback.setOnClickListener(View.OnClickListener {
+//            val email = Intent(Intent.ACTION_SEND)
+//            email.setType("plain/text")
+//            val address = arrayOf("echadworks@gmail.com")
+//            email.putExtra(Intent.EXTRA_EMAIL, address)
+////            email.putExtra(Intent.EXTRA_SUBJECT, "test@test")
+////            email.putExtra(Intent.EXTRA_TEXT, "내용 미리보기 (미리적을 수 있음)")
+//            startActivity(email)
+//        })
+
+       binding.radioGp.setOnCheckedChangeListener{ radioGroup, index ->
+          var selectedIndex = 0
+           when(index) {
+               binding.radioLight.id->{
+                   selectedIndex = 0
+                   changeTheme(AppCompatDelegate.MODE_NIGHT_NO)
+               }
+               binding.radioDark.id->{
+                   selectedIndex = 1
+                   changeTheme(AppCompatDelegate.MODE_NIGHT_YES)
+               }
+               binding.radioSystem.id->{
+                   selectedIndex = 2
+                   changeTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+               }
+           }
+            themeIndex = selectedIndex
+            val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putInt("themeIndex", themeIndex)
+            editor.apply()
+        }
+
+        initTheme(binding)
+
         bottomSheetDialog.setContentView(binding.root)
         bottomSheetDialog.show()
+    }
+
+    private fun initTheme(binding: BottomSheetAppInfoBinding) {
+        themeIndex = sharedPreferences.getInt("themeIndex", 0)
+
+        when (themeIndex) {
+            0 -> {
+                binding.radioLight.isChecked = true
+                changeTheme(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+
+            1 -> {
+                binding.radioDark.isChecked = true
+                changeTheme(AppCompatDelegate.MODE_NIGHT_YES)
+            }
+
+            2 -> {
+                binding.radioSystem.isChecked = true
+                changeTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+        }
     }
 
     private fun updateDateString(date: String) {
@@ -174,13 +244,12 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    private fun changeTheme(mode: Int) {
+        AppCompatDelegate.setDefaultNightMode(mode)
+    }
+
     override fun onResume() {
         super.onResume()
         requestPermissions()
-
-//        if (!binding.tvDate.text.equals(Globals.today())) {
-//            binding.tvDate.text = Globals.today()
-//            viewModel.getTodayPlan()
-//        }
     }
 }

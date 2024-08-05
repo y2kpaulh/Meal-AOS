@@ -2,6 +2,7 @@ package com.echadworks.meal
 
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -19,19 +20,20 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
 
-class MainViewModel(application: Application): AndroidViewModel(application) {
+
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         const val TAG: String = "MainViewModel"
     }
 
-    private val context = application.applicationContext
+    private var sharedPreferences: SharedPreferences =
+        getApplication<Application>().getSharedPreferences("shared preferences", MODE_PRIVATE)
 
     lateinit var planList: List<Plan>
     private lateinit var bible: Bible
     private lateinit var todayPlan: Plan
     private lateinit var todayBook: Bible.Book
     private lateinit var planData: PlanData
-    private val todayDate = Globals.todayString()
     var todayDescription = MutableLiveData<String>()
 
     private val _todayVerse = MutableLiveData<ArrayList<Verse>>()
@@ -41,15 +43,17 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     private var _scheduleList = MutableLiveData<List<Plan>>()
     val scheduleList: MutableLiveData<List<Plan>> get() = _scheduleList
 
+    var checkBoxList: ArrayList<Boolean> = arrayListOf(false, false, false)
+
     private lateinit var dataSource: ArrayList<Verse>
 
-    private val gson = com.google.gson.Gson()
+    private val gson = Gson()
 
     private var _scheduleDate = MutableLiveData<String>()
     val scheduleDate: MutableLiveData<String> get() = _scheduleDate
 
     fun configBible() {
-        val bibleJsonString = Utils().getAssetJsonData(context,"NKRV")
+        val bibleJsonString = Utils().getAssetJsonData(getApplication<Application>(),"NKRV")
         val bibleType = object : TypeToken<Bible>() {}.type
 
         bible = Gson().fromJson(bibleJsonString, bibleType)
@@ -61,14 +65,11 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private fun readSavedMealPlan() : List<Plan>? {
         // creating a new variable for gson.
-        val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
-
         val mealPlanStr = sharedPreferences.getString("mealPlan", "") ?: ""
 
         if (mealPlanStr.isNotEmpty()) {
             return gson.fromJson(mealPlanStr, Array<Plan>::class.java).toList()
         }
-
         return  null
     }
 
@@ -100,11 +101,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (mealPlan.isNotEmpty() && todayIndex != null) {
             _scheduleList.value = mealPlan
-
             Log.d("", "todayIndex: $todayIndex")
             return mealPlan[todayIndex]
         }
-
         return null
     }
 
@@ -112,20 +111,19 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         ApiProvider.mealApi().getMealPlan().enqueue(object : retrofit2.Callback<List<Plan>> {
             override fun onResponse(
                 call: Call<List<Plan>>,
-                response: Response<List<Plan>>
+                response: Response<List<Plan>>,
             ) {
                 planList = response.body()!!
 
                 _scheduleList.value = planList
 
                 saveMealPlan()
-
                 getPlanData()
             }
 
             override fun onFailure(
                 call: Call<List<Plan>>,
-                t: Throwable
+                t: Throwable,
             ) {
                 Log.d(TAG, t.message.toString())
             }
@@ -133,11 +131,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun saveMealPlan() {
-        // method for saving the data in array list.
-        // creating a variable for storing data in
-        // shared preferences.
-        val sharedPreferences = context.getSharedPreferences("shared preferences", MODE_PRIVATE)
-
         // creating a variable for editor to
         // store data in shared preferences.
         val editor = sharedPreferences.edit()
@@ -155,7 +148,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun getPlanData() {
-        Log.d(TAG, "planList: " + planList)
+        Log.d(TAG, "planList: $planList")
 
         val today = Globals.todayString()
         val plan = planList.filter {
@@ -195,7 +188,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             verseList = todayChapter.subList(todayPlan.fVer!! - 1, todayPlan.lVer!!).toMutableList()
 
             val chapter = todayBook.chapters[startChapterIndex-1]
-            var sliceStartIndex = startVerse-1
+            val sliceStartIndex = startVerse-1
             var sliceEndIndex = endVerse
 
             val verseText = chapter.subList(sliceStartIndex, sliceEndIndex)
@@ -213,9 +206,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 if (chapterIndex == startChapterIndex-1) {
                     sliceStartIndex = startVerse-1
                     sliceEndIndex = chapter.size
-                } else if (chapterIndex == endChapterIndex) {
-                    sliceStartIndex = 0
-                    sliceEndIndex = endVerse + 1
                 } else {
                     sliceStartIndex = 0
                     sliceEndIndex = chapter.size
