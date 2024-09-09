@@ -30,7 +30,7 @@ class Globals {
         }
 
         fun headerDateString(date: LocalDate): String {
-            val formatter = DateTimeFormatter.ofPattern("MM/dd, E요일")
+            val formatter = DateTimeFormatter.ofPattern("MM/dd, E요일", Locale.KOREAN)
             val dateString = date.format(formatter)
             println("dateString: $dateString")
 

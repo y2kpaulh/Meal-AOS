@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                 val planDate = plan.day.orEmpty()
                 val date = Globals.convertStringToDate(planDate)
 
-                date?.let {
+                date.let {
                     updateDateString(Globals.headerDateString(it))
                 }
 
